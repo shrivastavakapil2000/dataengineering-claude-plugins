@@ -92,10 +92,12 @@ JQL: issueFunction in commented("by <engineer name> after <yesterday ISO>")
 
 If `issueFunction` is not supported, fall back to searching by assignee only.
 
-For each issue found, note:
-- Issue key and summary
+For each issue found, call `getJiraIssue` with `expand=changelog` and `fields=["summary", "status", "description", "comment", "worklog", "attachment"]` to get full details. Note:
+- Issue key and **actual ticket title** (use verbatim — do not paraphrase or shorten)
 - Current status
 - What changed (status transition, comment, etc.)
+- **Time logged** — if a worklog entry exists for yesterday, include hours in the bullet (e.g., "(2h)")
+- **Attachments/comments** — if the engineer added comments or attachments, note what they contain
 
 **Jira Activity Interpretation Rules:**
 - A ticket being "updated" does NOT mean active work — it could be a field change, sprint board move, or automation
@@ -104,7 +106,13 @@ For each issue found, note:
 - Tickets that moved to **Done/Released** are strong signals of completed work
 - When in doubt, do NOT overstate — it's better to say "No updates found" than to fabricate activity
 
-Condense into max 5 bullet points, 12 words max each. Group related items.
+**Bullet Accuracy Rules:**
+- Always use the **actual Jira ticket title** in the bullet — do not paraphrase, summarize, or reword it
+- Include **time logged** when worklog data is available (e.g., "Completed CDP-118382 — How to add consumer in Snowflake external sharing (2h)")
+- When a Jira ticket has sparse details (no description, no comments), cross-reference Slack messages and Confluence edits to find additional context about what the engineer actually did
+- If no additional context is found anywhere, use the ticket title as-is — do not invent details
+
+Condense into max 5 bullet points, 12 words max each.
 
 #### 2b. GitHub Activity
 
@@ -135,7 +143,9 @@ Search for messages from the engineer in relevant channels using `slack_search_p
 Query: "from:<engineer name>" (search for messages from yesterday)
 ```
 
-Focus on messages in team channels (data-engineering, activation, daas-squad, etc.), not DMs.
+**IMPORTANT: Only report messages sent in public channels, private channels, or group DMs (mpim). NEVER include personal 1-on-1 DMs.** If the search returns 1-on-1 DM conversations, discard them entirely. Use `channel_types: "public_channel,private_channel,mpim"` when available.
+
+Focus on messages in team channels (data-engineering, activation, daas-squad, append-implementation-team, etc.).
 
 If Slack search does not support date filtering or the `from:` prefix, search for the engineer's name and filter results manually by date.
 
@@ -174,15 +184,39 @@ Condense PagerDuty activity into max 5 bullet points, 12 words max each. Include
 
 If an engineer had no PagerDuty activity yesterday, **leave the Pagerduty section blank** — do not write "No PagerDuty activity yesterday". Engineers will fill in their own PagerDuty notes if applicable.
 
-#### 2f. PTO / OOO Check
+#### 2f. PTO / OOO Check — MANDATORY (run BEFORE composing notes)
 
-Before composing notes, check if any engineer was OOO yesterday:
+**This step is NOT optional.** You MUST complete all PTO/OOO checks before composing any standup notes. Skipping this step leads to incorrect notes (e.g., listing "No updates found" when someone was actually on PTO).
 
-1. Search Slack for OOO messages: `"<engineer name>" OOO on:<yesterday ISO>`
-2. Search for the "Engineering & Product PTO" calendar in Confluence or Google Calendar
-3. If an engineer was OOO, set their Yesterday to just "OOO" — do not list any other activity
+Run ALL of these searches in parallel:
+
+1. **Broad Slack OOO search**: Search `slack_search_public_and_private` with these queries (all filtered to yesterday's date):
+   - `OOO on:<yesterday ISO>`
+   - `PTO on:<yesterday ISO>`
+   - `out of office on:<yesterday ISO>`
+   - `vacation on:<yesterday ISO>`
+   Then scan results for any mention of the target engineers by name.
+
+2. **Per-engineer Slack status**: For each engineer, also search:
+   - `"<engineer name>" OOO`
+   - `"<engineer name>" PTO`
+   filtered to the last 7 days (people sometimes announce PTO in advance).
+
+3. **Confluence PTO calendar**: Search for PTO/OOO pages:
+   - CQL: `title ~ "PTO" AND type = "page" AND space = "PROD"`
+   - CQL: `title ~ "PTO" AND type = "page" AND space = "XM1"`
+   Check if any results reference the target engineers for yesterday's date.
+
+4. **Cross-reference with previous standup**: If the most recent standup entry for an engineer already shows "PTO" or "OOO", check if they are still out (multi-day PTO is common).
+
+**Rules:**
+- If ANY source confirms an engineer was OOO/PTO yesterday, set their Yesterday to just **"OOO"** — do not list any other activity, even if Jira shows ticket updates (those are likely automations)
+- If evidence is ambiguous (e.g., someone says "he is out" without specifying PTO), flag it in Open Standup Questions rather than assuming OOO
+- Document which engineers were confirmed OOO and the source (e.g., "Sayali — OOO per Saikrish in #append-implementation-team")
 
 ### Step 3 — Compose Standup Notes
+
+**GATE CHECK:** Do NOT proceed with this step until Step 2f (PTO/OOO Check) has completed for ALL engineers. If Step 2f was skipped or failed, go back and run it now. Engineers confirmed OOO must have their Yesterday set to "OOO" only.
 
 For each engineer, compose notes using this exact template (use **full names**, not initials):
 
@@ -204,9 +238,11 @@ Open Standup Questions:
 Rules for bullet points:
 - Maximum 5 bullets per section (Yesterday, Pagerduty)
 - Maximum 12 words per bullet
-- Group related items into single bullets
+- **One work item per bullet** — each distinct ticket, PR, or task gets its own bullet. Do not combine separate work items into a single bullet (e.g., "Completed CDP-118382" and "Started CDP-117816" must be two separate bullets, not one)
+- Group only truly related sub-actions into single bullets (e.g., "Opened PR and flagged for review" is one action)
 - Be precise and executive-summary style
 - Use action verbs: "Completed CDP-XXXXX...", "Released CDP-XXXXX...", "Resolved incident on..."
+- **Link all ticket keys** — every Jira ticket key (e.g., CDP-118382, CON-798) must be a hyperlink to `https://resonate-jira.atlassian.net/browse/<KEY>`. In Confluence ADF, use a `smartLink` or `inlineCard` node. In markdown, use `[CDP-118382](https://resonate-jira.atlassian.net/browse/CDP-118382)`. Never leave a ticket key as plain text.
 - If no activity found in any source, write "No updates found in Jira/Slack/GitHub — please update"
 - If engineer was OOO, just write "OOO" for Yesterday
 - **Pagerduty**: Leave blank if no activity — do not write "No PagerDuty activity"
