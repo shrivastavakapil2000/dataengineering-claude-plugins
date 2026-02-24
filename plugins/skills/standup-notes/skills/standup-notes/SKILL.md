@@ -1,20 +1,20 @@
 ---
 name: standup-notes
-description: Generate daily standup notes for Activation and DaaS squads
+description: Generate daily standup notes for Activation and Append squads
 allowed-tools: mcp__plugin_atlassian_atlassian__getConfluencePage, mcp__plugin_atlassian_atlassian__getConfluencePageDescendants, mcp__plugin_atlassian_atlassian__updateConfluencePage, mcp__plugin_atlassian_atlassian__searchJiraIssuesUsingJql, mcp__plugin_atlassian_atlassian__getJiraIssue, mcp__plugin_atlassian_atlassian__searchConfluenceUsingCql, mcp__plugin_atlassian_atlassian__search, mcp__plugin_atlassian_atlassian__lookupJiraAccountId, mcp__claude_ai_Atlassian__getConfluencePage, mcp__claude_ai_Atlassian__getConfluencePageDescendants, mcp__claude_ai_Atlassian__updateConfluencePage, mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql, mcp__claude_ai_Atlassian__getJiraIssue, mcp__claude_ai_Atlassian__searchConfluenceUsingCql, mcp__claude_ai_Atlassian__search, mcp__claude_ai_Atlassian__lookupJiraAccountId, mcp__claude_ai_Slack__slack_search_public_and_private, mcp__claude_ai_Slack__slack_search_channels, mcp__claude_ai_Slack__slack_read_thread, mcp__claude_ai_Slack__slack_read_channel, mcp__claude_ai_Slack__slack_search_users, mcp__pagerduty__list_incidents, mcp__pagerduty__get_incident, mcp__pagerduty__list_log_entries, mcp__pagerduty__get_user_data, mcp__pagerduty__list_users, mcp__pagerduty__list_oncalls, Bash, Read, Write
 user-invocable: true
-argument-hint: [activation|daas|both] (default: both)
+argument-hint: [activation|append|both] (default: both)
 ---
 
 # Daily Standup Notes Generator
 
-Generate daily standup notes for the Activation and DaaS squads by gathering yesterday's activity from GitHub, Slack, Jira, Confluence, and PagerDuty, then updating the appropriate Confluence standup page.
+Generate daily standup notes for the Activation and Append squads by gathering yesterday's activity from GitHub, Slack, Jira, Confluence, and PagerDuty, then updating the appropriate Confluence standup page.
 
 ## Constants
 
 - **Jira Cloud ID**: `cb98e3ba-b082-4b0e-a241-0c4ccd00dce8`
 - **Activation Parent Page ID**: `5989793812`
-- **DaaS Page ID**: `6602752005`
+- **Append Parent Folder ID**: `5472681995` (this is a folder, not a page — use CQL search to find sprint child pages)
 - **Confluence Space Key**: `PROD`
 
 ## Squad Configuration
@@ -29,20 +29,20 @@ Engineers (use @mention format in Confluence):
 
 Page structure: **Parent page with child pages per sprint**. Each sprint is a child page titled like `Sprint NNN Activation Daily Scrum Notes`. Daily entries are tables within the sprint page, in reverse chronological order (newest at top, below the template section).
 
-### DaaS Squad
+### Append Squad
 
-Engineers (use full names in Confluence, not initials):
+Engineers (use @mention format in Confluence):
 | Name | Jira Display Name | Slack Search Name | GitHub Username |
 |---|---|---|---|
 | Jonathan Hudson | Jonathan Hudson | Jonathan Hudson | — |
 | Sayali Patwardhan | Sayali Patwardhan | Sayali Patwardhan | — |
 | Joe Xu | Joe Xu | Joe Xu | — |
 
-Page structure: **Single page with sprint sections as H1 headings**. Sprint headers look like `Sprint NNN (M/D/YYYY - M/D/YYYY)`. Daily entries are tables within each sprint section, in reverse chronological order (newest at top, below the template section).
+Page structure: **Parent folder with child pages per sprint**. Each sprint is a child page titled like `Sprint NNN Append Daily Scrum Note`. Daily entries are tables within the sprint page, in reverse chronological order (newest at top, below the template section). Because the parent is a Confluence **folder** (not a page), use CQL search to find sprint pages rather than `getConfluencePageDescendants`.
 
 ## Input
 
-The user provides an optional argument: `activation`, `daas`, or `both` (default: `both`).
+The user provides an optional argument: `activation`, `append`, or `both` (default: `both`).
 
 If no argument is provided, generate notes for both squads.
 
@@ -52,7 +52,7 @@ If no argument is provided, generate notes for both squads.
 
 Before doing anything else, verify connectivity to ALL required services. Run these checks in parallel:
 
-1. **Confluence**: Call `getConfluencePage` for the DaaS page (ID `6602752005`). If this fails, report the error and STOP.
+1. **Confluence**: Call `searchConfluenceUsingCql` with `title ~ "Append Daily Scrum" AND space = "PROD"` to verify Confluence connectivity. If this fails, report the error and STOP.
 2. **Jira**: Call `searchJiraIssuesUsingJql` with a simple query like `project = CDP AND updated >= -1d ORDER BY updated DESC` (limit 1). If this fails, report the error and STOP.
 3. **Slack**: Call `slack_search_channels` with query `data-engineering`. If this fails, report the error and STOP.
 4. **PagerDuty**: Call `list_users` (limit 1). If this fails, report the error and STOP.
@@ -145,7 +145,7 @@ Query: "from:<engineer name>" (search for messages from yesterday)
 
 **IMPORTANT: Only report messages sent in public channels, private channels, or group DMs (mpim). NEVER include personal 1-on-1 DMs.** If the search returns 1-on-1 DM conversations, discard them entirely. Use `channel_types: "public_channel,private_channel,mpim"` when available.
 
-Focus on messages in team channels (data-engineering, activation, daas-squad, append-implementation-team, etc.).
+Focus on messages in team channels (data-engineering, activation, append-implementation-team, etc.).
 
 If Slack search does not support date filtering or the `from:` prefix, search for the engineer's name and filter results manually by date.
 
@@ -254,7 +254,7 @@ Combine the engineer notes into a "Team Notes:" section header followed by all e
 
 ### Step 4 — Update Confluence (Activation Squad)
 
-Skip this step if the user specified `daas` only.
+Skip this step if the user specified `append` only.
 
 #### 4a. Find the current sprint page
 
@@ -273,7 +273,7 @@ Search the page content for today's date string (e.g., "Tuesday, Feb 24, 2026" o
 If today's date section already exists:
 - Report to the user: "Today's section already exists on the Activation standup page. Skipping to avoid duplicates."
 - Do NOT overwrite or modify existing content
-- STOP processing this squad (continue with DaaS if applicable)
+- STOP processing this squad (continue with Append if applicable)
 
 #### 4d. Insert today's section
 
@@ -309,64 +309,66 @@ CRITICAL: Read the existing page content first and replicate the exact same tabl
 
 Call `updateConfluencePage` with the modified content. Preserve the page title and all existing content.
 
-### Step 5 — Update Confluence (DaaS Squad)
+### Step 5 — Update Confluence (Append Squad)
 
 Skip this step if the user specified `activation` only.
 
-#### 5a. Read the DaaS page
+#### 5a. Find the current sprint page
 
-Call `getConfluencePage` with page ID `6602752005`. Read the full body content.
+Since the Append parent is a **folder** (ID `5472681995`), you cannot use `getConfluencePageDescendants`. Instead, use CQL search:
 
-#### 5b. Check if today's date already exists
+```
+CQL: title ~ "Append Daily Scrum" AND space = "PROD" ORDER BY created DESC
+```
+
+Identify the **most recent sprint page** — the child page with the highest sprint number. The title follows the pattern `Sprint NNN Append Daily Scrum Note`.
+
+#### 5b. Read the current sprint page
+
+Call `getConfluencePage` with the sprint page ID. Read the full body content.
+
+#### 5c. Check if today's date already exists
 
 Search the page content for today's date string (e.g., "Tuesday, Feb 24, 2026" or "Feb 24, 2026" or "2/24/2026"). Check multiple date formats.
 
 If today's date section already exists:
-- Report to the user: "Today's section already exists on the DaaS standup page. Skipping to avoid duplicates."
+- Report to the user: "Today's section already exists on the Append standup page. Skipping to avoid duplicates."
 - Do NOT overwrite or modify existing content
 - STOP processing this squad
 
-#### 5c. Find the current sprint section
-
-Locate the **first H1 heading** in the page body — this should be the current/most recent sprint header (since sprints are in reverse chronological order). The header looks like: `Sprint NNN (M/D/YYYY - M/D/YYYY)`.
-
 #### 5d. Insert today's section
 
-Insert the new daily entry **below the current sprint header** (and below the template if one exists) and **above any previous daily entries** in that sprint section.
+Insert the new daily entry **after the template section** and **before any previous daily entries** (reverse chronological order — newest at top).
 
-The table structure for DaaS follows this pattern (adapt to match the exact format observed):
+The table structure for Append follows this pattern (adapt to match the exact format observed in the page):
 
 ```
-| **Team Notes:** Tuesday, Feb 24, 2026 |
+| Tuesday, Feb 24, 2026 |
 |---|
-| Jonathan Hudson |
+| **Team Notes:** |
+| @Jonathan Hudson |
 | Yesterday: |
 | - bullet 1 |
 | - bullet 2 |
 | Today: |
-| PostScrum: |
-| Pagerduty: |
+| Post Scrum: |
 | Open Standup Questions: |
 | |
-| Sayali Patwardhan |
+| @Sayali Patwardhan |
 | Yesterday: |
 | - bullet 1 |
 | Today: |
-| PostScrum: |
-| Pagerduty: |
+| Post Scrum: |
 | Open Standup Questions: |
 | |
-| Joe Xu |
+| @Joe Xu |
 | Yesterday: |
 | - bullet 1 |
 | Today: |
-| PostScrum: |
-| Pagerduty: |
+| Post Scrum: |
 | Open Standup Questions: |
 |---|
 | Impediments: None |
-|---|
-| |
 ```
 
 CRITICAL: Read the existing page content first and replicate the exact same table/HTML/ADF structure. Do not guess the format. Match the structure of the most recent existing daily entry exactly.
@@ -386,8 +388,8 @@ Present a summary to the user:
 - Engineers: Mike Brant, Nathan Conroy
 - Status: Updated successfully / Skipped (already exists) / Error
 
-### DaaS Squad
-- Page: [DaaS Squad - Daily Scrum Notes 2026 Q1 Q2](link)
+### Append Squad
+- Page: [Sprint NNN Append Daily Scrum Note](link)
 - Date section added: Tuesday, Feb 24, 2026
 - Engineers: Jonathan Hudson, Sayali Patwardhan, Joe Xu
 - Status: Updated successfully / Skipped (already exists) / Error

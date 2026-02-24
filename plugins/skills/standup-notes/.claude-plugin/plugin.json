@@ -1,6 +1,6 @@
 {
   "name": "standup-notes",
-  "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
+  "description": "Generate daily standup notes for Activation and Append squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
   "version": "1.0.0",
   "author": {
     "name": "Data Engineering Team"

@@ -4,10 +4,10 @@
   "displayName": "Daily Standup Notes",
   "version": "1.0.0",
   "category": "skills",
-  "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
+  "description": "Generate daily standup notes for Activation and Append squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
   "author": "data-engineering-team",
   "tags": ["standup", "scrum", "daily", "confluence", "jira", "slack", "pagerduty", "github"],
-  "keywords": ["standup", "daily-scrum", "standup-notes", "team-notes", "activation", "daas"],
+  "keywords": ["standup", "daily-scrum", "standup-notes", "team-notes", "activation", "append"],
   "dependencies": {
     "tools": ["gh"],
     "mcpServers": ["atlassian", "slack", "pagerduty"]
@@ -46,7 +46,7 @@
   "configuration": {
     "arguments": {
       "type": "string",
-      "description": "Squad to generate notes for: 'activation', 'daas', or 'both' (default: both)"
+      "description": "Squad to generate notes for: 'activation', 'append', or 'both' (default: both)"
     }
   }
 }

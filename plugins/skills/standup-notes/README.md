@@ -1,6 +1,6 @@
 # Daily Standup Notes Generator
 
-Generate daily standup notes for the **Activation** and **DaaS** squads by gathering yesterday's activity from multiple sources and updating the team's Confluence standup pages.
+Generate daily standup notes for the **Activation** and **Append** squads by gathering yesterday's activity from multiple sources and updating the team's Confluence standup pages.
 
 ## What It Does
 
@@ -21,7 +21,7 @@ Generate daily standup notes for the **Activation** and **DaaS** squads by gathe
 ```
 /standup-notes              # Generate for both squads
 /standup-notes activation   # Activation squad only
-/standup-notes daas         # DaaS squad only
+/standup-notes append         # Append squad only
 ```
 
 ## Squads
@@ -31,10 +31,10 @@ Generate daily standup notes for the **Activation** and **DaaS** squads by gathe
 - **Page**: [Activation Daily Standup](https://resonate-jira.atlassian.net/wiki/spaces/PROD/pages/5989793812)
 - **Format**: Child pages per sprint, daily tables with @mentions
 
-### DaaS Squad
+### Append Squad
 - **Engineers**: Jonathan Hudson, Sayali Patwardhan, Joe Xu
-- **Page**: [DaaS Squad - Daily Scrum Notes 2026 Q1 Q2](https://resonate-jira.atlassian.net/wiki/spaces/PROD/pages/6602752005)
-- **Format**: Single page with sprint sections, daily tables with full names
+- **Page**: [Append Daily Scrum Notes](https://resonate-jira.atlassian.net/wiki/spaces/PROD/folder/5472681995) (parent folder)
+- **Format**: Child pages per sprint (e.g., `Sprint 390 Append Daily Scrum Note`), daily tables with @mentions
 
 ## Template Per Engineer
 
