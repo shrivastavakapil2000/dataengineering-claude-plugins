@@ -188,6 +188,17 @@ check_single_plugin() {
       for tool in $tools; do
         if command -v "$tool" &> /dev/null; then
           echo -e "  ${GREEN}OK${NC} CLI tool: $tool"
+          # Deep auth check for gh CLI
+          if [ "$tool" = "gh" ]; then
+            if gh auth status &>/dev/null; then
+              local gh_user
+              gh_user=$(gh api user --jq '.login' 2>/dev/null || echo "unknown")
+              echo -e "  ${GREEN}OK${NC} GitHub auth: logged in as $gh_user"
+            else
+              echo -e "  ${RED}MISSING${NC} GitHub auth: run 'gh auth login' to authenticate"
+              ok=1
+            fi
+          fi
         else
           echo -e "  ${RED}MISSING${NC} CLI tool: $tool — install it before using this plugin"
           ok=1
@@ -227,6 +238,55 @@ check_single_plugin() {
           echo -e "         Install with: /plugin install $mcp"
           ok=1
         fi
+
+        # Deep connectivity checks per MCP server type
+        case "$mcp" in
+          atlassian)
+            # Verify Jira connectivity
+            if curl -sf --max-time 5 "https://resonate-jira.atlassian.net/rest/api/3/serverInfo" -o /dev/null 2>/dev/null; then
+              echo -e "  ${GREEN}OK${NC} Jira API: resonate-jira.atlassian.net reachable"
+            else
+              echo -e "  ${YELLOW}CHECK${NC} Jira API: cannot reach resonate-jira.atlassian.net"
+              ok=1
+            fi
+            # Verify Confluence connectivity (accept any HTTP response — auth is handled by the Atlassian plugin)
+            local confluence_http_code
+            confluence_http_code=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" "https://resonate-jira.atlassian.net/wiki/rest/api/space?limit=1" 2>/dev/null)
+            if [ "$confluence_http_code" -ge 200 ] && [ "$confluence_http_code" -lt 500 ] 2>/dev/null; then
+              echo -e "  ${GREEN}OK${NC} Confluence API: wiki endpoint reachable (HTTP $confluence_http_code — auth via Atlassian plugin)"
+            else
+              echo -e "  ${YELLOW}CHECK${NC} Confluence API: cannot reach wiki endpoint (HTTP $confluence_http_code) — ensure Atlassian plugin has Confluence access"
+              ok=1
+            fi
+            ;;
+          slack)
+            # Slack connectivity is managed through Claude Code plugin — verify plugin cache exists
+            if [ -d "$CLAUDE_DIR/plugins/cache" ] && find "$CLAUDE_DIR/plugins/cache" -path "*slack*" -o -path "*Slack*" 2>/dev/null | grep -qi slack; then
+              echo -e "  ${GREEN}OK${NC} Slack plugin: found in plugin cache"
+            else
+              echo -e "  ${YELLOW}CHECK${NC} Slack plugin: not found in cache — connect Slack via Claude Code settings"
+              ok=1
+            fi
+            ;;
+          aws-ccapi)
+            # Check AWS credentials are configured
+            if command -v aws &>/dev/null; then
+              echo -e "  ${GREEN}OK${NC} AWS CLI: installed"
+              if aws sts get-caller-identity &>/dev/null; then
+                local aws_account aws_arn
+                aws_account=$(aws sts get-caller-identity --query 'Account' --output text 2>/dev/null || echo "unknown")
+                aws_arn=$(aws sts get-caller-identity --query 'Arn' --output text 2>/dev/null || echo "unknown")
+                echo -e "  ${GREEN}OK${NC} AWS auth: account $aws_account ($aws_arn)"
+              else
+                echo -e "  ${RED}MISSING${NC} AWS auth: credentials not configured or expired"
+                echo -e "         Run 'aws configure' or set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY"
+                ok=1
+              fi
+            else
+              echo -e "  ${YELLOW}CHECK${NC} AWS CLI: not installed (aws-ccapi MCP server may handle auth independently)"
+            fi
+            ;;
+        esac
       done
 
       # Check prerequisites field (extended checks)
@@ -251,10 +311,18 @@ check_single_plugin() {
       local needs_network
       needs_network=$(jq -r '.permissions.network // false' "$manifest" 2>/dev/null)
       if [ "$needs_network" = "true" ]; then
-        if curl -s --max-time 3 https://resonate-jira.atlassian.net > /dev/null 2>&1; then
+        local net_ok=0
+        # Test multiple endpoints based on declared MCP servers
+        for endpoint in "https://resonate-jira.atlassian.net" "https://api.github.com"; do
+          if curl -sf --max-time 3 "$endpoint" -o /dev/null 2>/dev/null; then
+            net_ok=1
+            break
+          fi
+        done
+        if [ $net_ok -eq 1 ]; then
           echo -e "  ${GREEN}OK${NC} Network connectivity"
         else
-          echo -e "  ${YELLOW}CHECK${NC} Network — could not reach resonate-jira.atlassian.net"
+          echo -e "  ${YELLOW}CHECK${NC} Network — could not reach external endpoints"
           ok=1
         fi
       fi
