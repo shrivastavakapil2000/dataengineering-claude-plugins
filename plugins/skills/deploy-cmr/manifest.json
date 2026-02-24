@@ -1,0 +1,26 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "deploy-cmr",
+  "displayName": "Deploy CMR",
+  "version": "1.0.0",
+  "category": "skills",
+  "description": "Create a CMR ticket linked to a work item and notify data-engineering-only Slack channel for prod deployment",
+  "author": "data-engineering-team",
+  "tags": ["deployment", "cmr", "change-management", "jira", "slack", "production"],
+  "keywords": ["deploy", "cmr", "change-request", "prod", "release", "notification"],
+  "dependencies": {
+    "tools": [],
+    "mcpServers": ["atlassian", "slack"]
+  },
+  "permissions": {
+    "bash": [],
+    "fileAccess": [],
+    "network": true
+  },
+  "configuration": {
+    "arguments": {
+      "type": "string",
+      "description": "Jira ticket key to link to the CMR (e.g., CDP-118328)"
+    }
+  }
+}

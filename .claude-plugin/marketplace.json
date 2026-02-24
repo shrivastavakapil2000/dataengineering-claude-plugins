@@ -5,5 +5,12 @@
     "email": "dataengineering@resonate.com"
   },
   "description": "Resonate Data Engineering plugins for Claude Code — pipelines, Snowflake, Spark, ETL workflows",
-  "plugins": []
+  "plugins": [
+    {
+      "name": "deploy-cmr",
+      "source": "./plugins/skills/deploy-cmr",
+      "description": "Create a CMR ticket linked to a work item and notify data-engineering-only Slack channel for prod deployment",
+      "version": "1.0.0"
+    }
+  ]
 }
