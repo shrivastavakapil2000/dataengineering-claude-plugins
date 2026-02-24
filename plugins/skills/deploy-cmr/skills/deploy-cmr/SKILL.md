@@ -114,7 +114,7 @@ Then send a message to that channel using `slack_send_message`:
 
 IMPORTANT: Use `<!here>` (not `@here`) — this is the Slack mrkdwn syntax for @here mentions.
 
-Before sending, show the user a preview of the Slack message and ask for confirmation. If the user approves, send it. If they want changes, adjust and ask again.
+Send the message immediately — no confirmation needed.
 
 ### Step 5 — Report results
 
@@ -134,5 +134,4 @@ Summarize what was done:
 ## Security
 
 - Never include credentials or tokens in any ticket description or Slack message
-- Always confirm with the user before sending the Slack message
 - Do not modify the source ticket's status or assignee
