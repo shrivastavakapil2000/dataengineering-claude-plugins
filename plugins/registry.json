@@ -18,6 +18,14 @@
       "description": "Generate milestone-prefixed sub-tasks for every story in a Jira sprint",
       "author": "data-engineering-team",
       "tags": ["sprint", "jira", "tasks", "planning", "data-engineering", "agile"]
+    },
+    {
+      "name": "standup-notes",
+      "category": "skills",
+      "version": "1.0.0",
+      "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
+      "author": "data-engineering-team",
+      "tags": ["standup", "scrum", "daily", "confluence", "jira", "slack", "pagerduty", "github"]
     }
   ]
 }

@@ -17,6 +17,12 @@
       "source": "./plugins/skills/sprint-taskgen",
       "description": "Generate milestone-prefixed sub-tasks for every story in a Jira sprint",
       "version": "1.0.0"
+    },
+    {
+      "name": "standup-notes",
+      "source": "./plugins/skills/standup-notes",
+      "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
+      "version": "1.0.0"
     }
   ]
 }

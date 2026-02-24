@@ -1,0 +1,52 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "standup-notes",
+  "displayName": "Daily Standup Notes",
+  "version": "1.0.0",
+  "category": "skills",
+  "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
+  "author": "data-engineering-team",
+  "tags": ["standup", "scrum", "daily", "confluence", "jira", "slack", "pagerduty", "github"],
+  "keywords": ["standup", "daily-scrum", "standup-notes", "team-notes", "activation", "daas"],
+  "dependencies": {
+    "tools": ["gh"],
+    "mcpServers": ["atlassian", "slack", "pagerduty"]
+  },
+  "prerequisites": {
+    "plugins": [
+      {
+        "name": "atlassian",
+        "description": "Atlassian plugin (atlassian@claude-plugins-official) — must be connected to Resonate Jira and Confluence",
+        "installHint": "/plugin install atlassian@claude-plugins-official"
+      },
+      {
+        "name": "slack",
+        "description": "Slack plugin — must be connected to Resonate Slack workspace",
+        "installHint": "Connect Slack via Claude Code settings"
+      },
+      {
+        "name": "pagerduty",
+        "description": "PagerDuty MCP server — for incident activity lookups",
+        "installHint": "Configure pagerduty MCP server in Claude Code settings"
+      }
+    ],
+    "permissions": [
+      "Read/Write access to PROD Confluence space (standup pages)",
+      "Read access to Jira issues (all DE projects)",
+      "Read access to Slack channels (team channels)",
+      "Read access to PagerDuty incidents and users",
+      "Read access to GitHub repos via gh CLI (must be authenticated with `gh auth login`)"
+    ]
+  },
+  "permissions": {
+    "bash": ["gh *"],
+    "fileAccess": [],
+    "network": true
+  },
+  "configuration": {
+    "arguments": {
+      "type": "string",
+      "description": "Squad to generate notes for: 'activation', 'daas', or 'both' (default: both)"
+    }
+  }
+}
