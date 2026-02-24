@@ -89,6 +89,70 @@ If something is missing:
 Continue with install anyway? [y/N]
 ```
 
+## Verifying Installation
+
+After installing a plugin, verify it's working correctly:
+
+### 1. Check the plugin is loaded
+
+```bash
+# In Claude Code, type / and look for your plugin in the slash command list
+/deploy-cmr
+```
+
+If the skill appears in autocomplete, it's loaded.
+
+### 2. Check via the plugin manager
+
+```bash
+# Open the plugin manager and go to the "Installed" tab
+/plugin
+```
+
+Your plugin should appear under the `dataengineering-plugins` marketplace with a green status.
+
+### 3. Verify prerequisites are connected
+
+```bash
+# Run /mcp to check MCP server connectivity
+/mcp
+```
+
+For `deploy-cmr`, you should see both `atlassian` and `slack` listed and connected. If either shows as disconnected, re-authenticate:
+- **Atlassian**: `/mcp` and reconnect, or `/plugin` > Installed > atlassian > Reconnect
+- **Slack**: Reconnect via Claude Code settings
+
+### 4. Dry-run the plugin
+
+Test with a known ticket to confirm end-to-end:
+
+```bash
+# For deploy-cmr, use any existing ticket key
+/deploy-cmr CDP-118328
+```
+
+If everything is wired up correctly, you'll see the CMR being created and a Slack message sent.
+
+### 5. CLI verification (if installed via de-plugins)
+
+```bash
+# Confirm files were copied
+ls ~/.claude/skills/deploy-cmr/
+
+# Re-run prerequisite check
+./scripts/de-plugins check deploy-cmr
+```
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| Skill not showing in `/` autocomplete | Restart Claude Code, or check `/plugin` > Errors tab |
+| "Tool not found" errors during execution | Run `/mcp` to verify Atlassian and Slack are connected |
+| Slack message fails | Verify you have access to `#data-engineering-only` channel |
+| CMR creation fails | Verify you have write access to the CMR project in Jira |
+| Plugin loads but behaves unexpectedly | Check for newer version: `git pull` and reinstall |
+
 ## Plugin Categories
 
 | Category | Directory | Description |
