@@ -273,6 +273,67 @@ check_single_plugin() {
   return 1
 }
 
+configure_permissions() {
+  local plugin_name="$1"
+  local source_dir="$2"
+  local settings_file="$CLAUDE_DIR/settings.json"
+
+  # Read allowed-tools from SKILL.md if it exists
+  local skill_md=""
+  skill_md=$(find "$source_dir" -name "SKILL.md" -print -quit 2>/dev/null)
+  if [ -z "$skill_md" ]; then
+    return 0
+  fi
+
+  # Extract allowed-tools from YAML frontmatter
+  local allowed_tools=""
+  allowed_tools=$(sed -n '/^---$/,/^---$/p' "$skill_md" | grep '^allowed-tools:' | sed 's/^allowed-tools: *//')
+  if [ -z "$allowed_tools" ]; then
+    return 0
+  fi
+
+  # Parse comma-separated tool names, trim whitespace
+  local tools=()
+  IFS=',' read -ra raw_tools <<< "$allowed_tools"
+  for tool in "${raw_tools[@]}"; do
+    tool=$(echo "$tool" | xargs) # trim whitespace
+    # Only auto-allow MCP tools (these are the ones that prompt)
+    if [[ "$tool" == mcp__* ]]; then
+      tools+=("$tool")
+    fi
+  done
+
+  if [ ${#tools[@]} -eq 0 ]; then
+    return 0
+  fi
+
+  # Ensure settings file exists
+  if [ ! -f "$settings_file" ]; then
+    mkdir -p "$CLAUDE_DIR"
+    echo '{"permissions":{"allow":[],"deny":[]}}' > "$settings_file"
+  fi
+
+  # Add each tool to the allow list if not already present
+  local added=0
+  for tool in "${tools[@]}"; do
+    if ! jq -e --arg t "$tool" '.permissions.allow // [] | any(. == $t)' "$settings_file" &>/dev/null; then
+      local tmp_file
+      tmp_file=$(mktemp)
+      jq --arg t "$tool" '.permissions.allow = ((.permissions.allow // []) + [$t] | unique)' "$settings_file" > "$tmp_file" && mv "$tmp_file" "$settings_file"
+      added=$((added + 1))
+    fi
+  done
+
+  if [ $added -gt 0 ]; then
+    echo ""
+    echo -e "${GREEN}Auto-configured $added tool permission(s) in $settings_file${NC}"
+    echo "  Tools will not prompt for approval when this plugin runs:"
+    for tool in "${tools[@]}"; do
+      echo "    - $tool"
+    done
+  fi
+}
+
 install_plugin() {
   local plugin_name="$1"
 
@@ -303,6 +364,9 @@ install_plugin() {
 
       # Make scripts executable
       find "$target_dir" -name "*.sh" -exec chmod +x {} \;
+
+      # Auto-add required tool permissions to user settings
+      configure_permissions "$plugin_name" "$source_dir"
 
       echo -e "${GREEN}Installed successfully!${NC}"
       echo ""

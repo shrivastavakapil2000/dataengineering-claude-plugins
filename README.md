@@ -63,6 +63,31 @@ The `de-plugins` script provides a full CLI for managing plugins:
 | `uninstall <plugin>` | Remove an installed plugin |
 | `validate` | Validate all plugin manifests |
 
+### Automatic Permission Setup
+
+When you install a plugin via `de-plugins install`, it **automatically adds the required MCP tool permissions** to your `~/.claude/settings.json`. This means you won't be prompted to approve tools like Slack send message or Jira create issue every time the plugin runs.
+
+```bash
+$ ./scripts/de-plugins install deploy-cmr
+
+Auto-configured 7 tool permission(s) in /Users/you/.claude/settings.json
+  Tools will not prompt for approval when this plugin runs:
+    - mcp__claude_ai_Slack__slack_send_message
+    - mcp__claude_ai_Slack__slack_search_channels
+    - mcp__plugin_atlassian_atlassian__getJiraIssue
+    - mcp__plugin_atlassian_atlassian__createJiraIssue
+    ...
+```
+
+If you install via the marketplace (`/plugin install`), add the repo-level permissions manually by copying from `.claude/settings.json` in this repo, or run:
+
+```bash
+# Clone and run the permission setup
+git clone https://github.com/shrivastavakapil2000/dataengineering-claude-plugins.git
+cd dataengineering-claude-plugins
+./scripts/de-plugins install deploy-cmr
+```
+
 ### Prerequisite Checking
 
 Every plugin declares its prerequisites in `manifest.json`. The CLI checks them before install:
