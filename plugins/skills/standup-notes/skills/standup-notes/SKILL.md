@@ -31,12 +31,12 @@ Page structure: **Parent page with child pages per sprint**. Each sprint is a ch
 
 ### DaaS Squad
 
-Engineers (use bracket-initial format in Confluence):
-| Name | Initials | Jira Display Name | Slack Search Name | GitHub Username |
-|---|---|---|---|---|
-| Jonathan Hinson | JH | Jonathan Hinson | Jonathan Hinson | — |
-| Sayali Patwardhan | SP | Sayali Patwardhan | Sayali Patwardhan | — |
-| Joe Xu | JX | Joe Xu | Joe Xu | — |
+Engineers (use full names in Confluence, not initials):
+| Name | Jira Display Name | Slack Search Name | GitHub Username |
+|---|---|---|---|
+| Jonathan Hudson | Jonathan Hudson | Jonathan Hudson | — |
+| Sayali Patwardhan | Sayali Patwardhan | Sayali Patwardhan | — |
+| Joe Xu | Joe Xu | Joe Xu | — |
 
 Page structure: **Single page with sprint sections as H1 headings**. Sprint headers look like `Sprint NNN (M/D/YYYY - M/D/YYYY)`. Daily entries are tables within each sprint section, in reverse chronological order (newest at top, below the template section).
 
@@ -96,6 +96,13 @@ For each issue found, note:
 - Issue key and summary
 - Current status
 - What changed (status transition, comment, etc.)
+
+**Jira Activity Interpretation Rules:**
+- A ticket being "updated" does NOT mean active work — it could be a field change, sprint board move, or automation
+- Only count a ticket as real work if the **status changed** (e.g., To Do → In Progress, In Progress → Done)
+- Tickets still in **To Do** or **Ready for Next** status with no status transition should NOT appear in "Yesterday" — move them to "Open Standup Questions" instead (e.g., "CDP-XXXXX — updated but no progress, is this blocked?")
+- Tickets that moved to **Done/Released** are strong signals of completed work
+- When in doubt, do NOT overstate — it's better to say "No updates found" than to fabricate activity
 
 Condense into max 5 bullet points, 12 words max each. Group related items.
 
@@ -165,24 +172,33 @@ Condense PagerDuty activity into max 5 bullet points, 12 words max each. Include
 - Services affected
 - Actions taken
 
-If an engineer had no PagerDuty activity yesterday, use "No PagerDuty activity yesterday" as the single bullet.
+If an engineer had no PagerDuty activity yesterday, **leave the Pagerduty section blank** — do not write "No PagerDuty activity yesterday". Engineers will fill in their own PagerDuty notes if applicable.
+
+#### 2f. PTO / OOO Check
+
+Before composing notes, check if any engineer was OOO yesterday:
+
+1. Search Slack for OOO messages: `"<engineer name>" OOO on:<yesterday ISO>`
+2. Search for the "Engineering & Product PTO" calendar in Confluence or Google Calendar
+3. If an engineer was OOO, set their Yesterday to just "OOO" — do not list any other activity
 
 ### Step 3 — Compose Standup Notes
 
-For each engineer, compose notes using this exact template:
+For each engineer, compose notes using this exact template (use **full names**, not initials):
 
 ```
-[Name of Engineer]
+<Full Name of Engineer>
 Yesterday:
 - <bullet 1>
 - <bullet 2>
 ...
-Today: <To be filled by engineer>
-PostScrum: <To be filled by engineer>
+Today:
+PostScrum:
 Pagerduty:
-- <bullet 1>
-- <bullet 2>
+- <bullet 1 — only if there was PagerDuty activity, otherwise leave blank>
 ...
+Open Standup Questions:
+- <question about ticket status, blockers, etc. — only if applicable>
 ```
 
 Rules for bullet points:
@@ -190,8 +206,11 @@ Rules for bullet points:
 - Maximum 12 words per bullet
 - Group related items into single bullets
 - Be precise and executive-summary style
-- Use action verbs: "Reviewed PR for...", "Resolved incident on...", "Updated config for..."
-- If no activity found in any source, write "No activity identified — please update"
+- Use action verbs: "Completed CDP-XXXXX...", "Released CDP-XXXXX...", "Resolved incident on..."
+- If no activity found in any source, write "No updates found in Jira/Slack/GitHub — please update"
+- If engineer was OOO, just write "OOO" for Yesterday
+- **Pagerduty**: Leave blank if no activity — do not write "No PagerDuty activity"
+- **Open Standup Questions**: Use this section for tickets that were updated but show no real progress (e.g., still in To Do), or for backlog items in "Ready for Next" status that need a plan. Do not put these in Yesterday or PostScrum.
 
 Combine the engineer notes into a "Team Notes:" section header followed by all engineers' notes.
 
@@ -234,18 +253,16 @@ The table structure for Activation follows this pattern (adapt to match the exac
 | Yesterday: |
 | - bullet 1 |
 | - bullet 2 |
-| Today: To be filled by engineer |
-| PostScrum: To be filled by engineer |
-| Pagerduty: |
-| - bullet 1 |
+| Today: |
+| Post Scrum: |
+| Open Standup Questions: |
 | |
 | @Nathan Conroy |
 | Yesterday: |
 | - bullet 1 |
-| Today: To be filled by engineer |
-| PostScrum: To be filled by engineer |
-| Pagerduty: |
-| - bullet 1 |
+| Today: |
+| Post Scrum: |
+| Open Standup Questions: |
 |---|
 | Impediments: None |
 ```
@@ -284,30 +301,30 @@ The table structure for DaaS follows this pattern (adapt to match the exact form
 ```
 | **Team Notes:** Tuesday, Feb 24, 2026 |
 |---|
-| [JH] |
+| Jonathan Hudson |
 | Yesterday: |
 | - bullet 1 |
 | - bullet 2 |
-| Today: To be filled by engineer |
-| PostScrum: To be filled by engineer |
+| Today: |
+| PostScrum: |
 | Pagerduty: |
-| - bullet 1 |
+| Open Standup Questions: |
 | |
-| [SP] |
+| Sayali Patwardhan |
 | Yesterday: |
 | - bullet 1 |
-| Today: To be filled by engineer |
-| PostScrum: To be filled by engineer |
+| Today: |
+| PostScrum: |
 | Pagerduty: |
-| - bullet 1 |
+| Open Standup Questions: |
 | |
-| [JX] |
+| Joe Xu |
 | Yesterday: |
 | - bullet 1 |
-| Today: To be filled by engineer |
-| PostScrum: To be filled by engineer |
+| Today: |
+| PostScrum: |
 | Pagerduty: |
-| - bullet 1 |
+| Open Standup Questions: |
 |---|
 | Impediments: None |
 |---|
@@ -334,7 +351,7 @@ Present a summary to the user:
 ### DaaS Squad
 - Page: [DaaS Squad - Daily Scrum Notes 2026 Q1 Q2](link)
 - Date section added: Tuesday, Feb 24, 2026
-- Engineers: Jonathan Hinson [JH], Sayali Patwardhan [SP], Joe Xu [JX]
+- Engineers: Jonathan Hudson, Sayali Patwardhan, Joe Xu
 - Status: Updated successfully / Skipped (already exists) / Error
 
 ### Data Sources Used
