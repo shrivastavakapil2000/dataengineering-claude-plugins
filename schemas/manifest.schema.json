@@ -85,6 +85,41 @@
         }
       }
     },
+    "prerequisites": {
+      "type": "object",
+      "description": "Prerequisites that must be met before the plugin can function",
+      "properties": {
+        "plugins": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Plugin or MCP server name to check for"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable description of what this prerequisite provides"
+              },
+              "installHint": {
+                "type": "string",
+                "description": "Command or instruction to install this prerequisite"
+              }
+            }
+          },
+          "description": "Required plugins or MCP servers that must be installed and connected"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Permissions that the user must have (informational, cannot be auto-checked)"
+        }
+      }
+    },
     "configuration": {
       "type": "object",
       "description": "Plugin-specific configuration schema"

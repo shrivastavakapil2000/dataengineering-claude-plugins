@@ -6,6 +6,20 @@ Plugin marketplace for the Data Engineering team at Resonate. Modeled after [shi
 
 Contains Claude Code plugins (skills, agents, MCP servers, hooks) for data pipeline operations, Snowflake, Spark, ETL workflows, and data quality.
 
+## Best Practices Reference
+
+When creating or reviewing plugins in this repo, **always check [resonate/shield-claude-plugins](https://github.com/resonate/shield-claude-plugins) for best practices**. That repo is maintained by the DevOps/Platform team and serves as the canonical reference for:
+
+- Plugin directory structure and naming conventions
+- SKILL.md format (YAML frontmatter, allowed-tools, prompt structure)
+- manifest.json fields and validation schemas
+- README.md documentation standards
+- CI/CD validation workflows
+- Security patterns (no hardcoded secrets, least privilege permissions)
+- Supporting files organization (checklists, templates within skill directories)
+
+If the shield repo has updated its patterns (new schema fields, improved validation, new template formats), adopt those changes here to stay consistent across Resonate plugin repos.
+
 ## Repository Structure
 
 ```
@@ -22,6 +36,7 @@ schemas/
 templates/                        # Starter templates for each plugin type
   skill/ | agent/ | mcp-server/ | hook/
 scripts/
+  de-plugins                      # CLI helper (list, install, check, search)
   validate-manifests.js           # Plugin validation script
 .github/workflows/validate.yml    # CI pipeline
 ```
@@ -29,12 +44,13 @@ scripts/
 ## Adding a Plugin
 
 1. Copy the appropriate template: `cp -r templates/skill/ plugins/skills/my-plugin/`
-2. Edit `manifest.json` with your plugin details
+2. Edit `manifest.json` with your plugin details — include `prerequisites` for any required plugins/MCP servers
 3. Write the implementation (SKILL.md, prompt.md, src/, or hook.sh)
 4. Add a `README.md`
 5. Update `plugins/registry.json` and `.claude-plugin/marketplace.json`
 6. Run `npm run validate` to verify
-7. Submit a PR
+7. Run `./scripts/de-plugins check my-plugin` to test prerequisites
+8. Submit a PR
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for full details.
 
@@ -45,3 +61,5 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for full details.
 - Manifests validated against JSON schemas on every PR
 - No hardcoded secrets — use env vars or AWS Secrets Manager
 - Always confirm before running destructive or prod operations
+- Declare all prerequisites in `manifest.json` so users can run `de-plugins check` before install
+- Follow the same patterns as [shield-claude-plugins](https://github.com/resonate/shield-claude-plugins) for consistency across Resonate

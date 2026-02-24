@@ -2,7 +2,7 @@
   "$schema": "../../../schemas/manifest.schema.json",
   "name": "deploy-cmr",
   "displayName": "Deploy CMR",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "category": "skills",
   "description": "Create a CMR ticket linked to a work item and notify data-engineering-only Slack channel for prod deployment",
   "author": "data-engineering-team",
@@ -11,6 +11,24 @@
   "dependencies": {
     "tools": [],
     "mcpServers": ["atlassian", "slack"]
+  },
+  "prerequisites": {
+    "plugins": [
+      {
+        "name": "atlassian",
+        "description": "Atlassian plugin (atlassian@claude-plugins-official) — must be connected to Resonate Jira",
+        "installHint": "/plugin install atlassian@claude-plugins-official"
+      },
+      {
+        "name": "slack",
+        "description": "Slack plugin — must be connected to Resonate Slack workspace",
+        "installHint": "Connect Slack via Claude Code settings"
+      }
+    ],
+    "permissions": [
+      "Write access to CMR project in Jira",
+      "Permission to post in #data-engineering-only Slack channel"
+    ]
   },
   "permissions": {
     "bash": [],

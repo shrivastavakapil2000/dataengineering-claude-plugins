@@ -1,0 +1,371 @@
+#!/bin/bash
+# Data Engineering Claude Plugins CLI
+# Usage: de-plugins <command> [args]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+CLAUDE_DIR="${HOME}/.claude"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+usage() {
+  cat << EOF
+Data Engineering Claude Plugins CLI
+
+Usage: de-plugins <command> [options]
+
+Commands:
+  list [category]     List available plugins (optionally filter by category)
+  search <query>      Search plugins by name or tag
+  info <plugin>       Show detailed plugin information
+  install <plugin>    Install a plugin to ~/.claude/
+  uninstall <plugin>  Remove a plugin from ~/.claude/
+  check [plugin]      Check prerequisites for a plugin (or all plugins)
+  validate            Validate all plugin manifests
+
+Categories: skills, agents, mcp-servers, hooks
+
+Examples:
+  de-plugins list skills
+  de-plugins install deploy-cmr
+  de-plugins check deploy-cmr
+  de-plugins info deploy-cmr
+EOF
+}
+
+list_plugins() {
+  local category="${1:-}"
+
+  if [ -n "$category" ]; then
+    categories=("$category")
+  else
+    categories=(skills agents mcp-servers hooks)
+  fi
+
+  for cat in "${categories[@]}"; do
+    local cat_dir="$REPO_DIR/plugins/$cat"
+    if [ -d "$cat_dir" ]; then
+      echo -e "${BLUE}=== $cat ===${NC}"
+      for plugin_dir in "$cat_dir"/*/; do
+        if [ -d "$plugin_dir" ]; then
+          local manifest="$plugin_dir/manifest.json"
+          if [ -f "$manifest" ]; then
+            local name desc version
+            name=$(jq -r '.name' "$manifest")
+            desc=$(jq -r '.description' "$manifest")
+            version=$(jq -r '.version' "$manifest")
+            printf "  %-20s v%-8s %s\n" "$name" "$version" "$desc"
+          fi
+        fi
+      done
+      echo ""
+    fi
+  done
+}
+
+search_plugins() {
+  local query="$1"
+  echo "Searching for: $query"
+  echo ""
+
+  for cat in skills agents mcp-servers hooks; do
+    local cat_dir="$REPO_DIR/plugins/$cat"
+    if [ -d "$cat_dir" ]; then
+      for plugin_dir in "$cat_dir"/*/; do
+        if [ -d "$plugin_dir" ]; then
+          local manifest="$plugin_dir/manifest.json"
+          if [ -f "$manifest" ]; then
+            if jq -e --arg q "$query" '
+              (.name | ascii_downcase | contains($q | ascii_downcase)) or
+              (.description | ascii_downcase | contains($q | ascii_downcase)) or
+              (.tags // [] | map(ascii_downcase) | any(contains($q | ascii_downcase)))
+            ' "$manifest" > /dev/null 2>&1; then
+              local name desc
+              name=$(jq -r '.name' "$manifest")
+              desc=$(jq -r '.description' "$manifest")
+              echo "[$cat] $name - $desc"
+            fi
+          fi
+        fi
+      done
+    fi
+  done
+}
+
+info_plugin() {
+  local plugin_name="$1"
+  local found=0
+
+  for cat in skills agents mcp-servers hooks; do
+    local manifest="$REPO_DIR/plugins/$cat/$plugin_name/manifest.json"
+    if [ -f "$manifest" ]; then
+      found=1
+      echo -e "${BLUE}=== $plugin_name ===${NC}"
+      jq -r '
+        "Name:        \(.displayName // .name)",
+        "Version:     \(.version)",
+        "Category:    \(.category)",
+        "Author:      \(.author // "unknown")",
+        "Description: \(.description)",
+        "",
+        "Tags:        \((.tags // []) | join(", "))",
+        "Dependencies:",
+        "  Tools:     \((.dependencies.tools // []) | join(", "))",
+        "  MCP:       \((.dependencies.mcpServers // []) | join(", "))"
+      ' "$manifest"
+
+      # Show prerequisites if they exist
+      local prereqs
+      prereqs=$(jq -r '.prerequisites // empty' "$manifest" 2>/dev/null)
+      if [ -n "$prereqs" ]; then
+        echo ""
+        echo "Prerequisites:"
+        jq -r '.prerequisites.plugins // [] | .[] | "  Plugin: \(.name) — \(.description // "")"' "$manifest" 2>/dev/null
+        jq -r '.prerequisites.permissions // [] | .[] | "  Permission: \(.)"' "$manifest" 2>/dev/null
+      fi
+
+      local readme="$REPO_DIR/plugins/$cat/$plugin_name/README.md"
+      if [ -f "$readme" ]; then
+        echo ""
+        echo "Documentation: $readme"
+      fi
+      break
+    fi
+  done
+
+  if [ $found -eq 0 ]; then
+    echo "Plugin not found: $plugin_name"
+    exit 1
+  fi
+}
+
+check_prerequisites() {
+  local plugin_name="${1:-}"
+  local all_ok=0
+
+  if [ -z "$plugin_name" ]; then
+    echo "Checking prerequisites for all plugins..."
+    echo ""
+    for cat in skills agents mcp-servers hooks; do
+      local cat_dir="$REPO_DIR/plugins/$cat"
+      if [ -d "$cat_dir" ]; then
+        for plugin_dir in "$cat_dir"/*/; do
+          if [ -d "$plugin_dir" ]; then
+            local name
+            name=$(basename "$plugin_dir")
+            check_single_plugin "$name" || all_ok=1
+            echo ""
+          fi
+        done
+      fi
+    done
+    return $all_ok
+  else
+    check_single_plugin "$plugin_name"
+    return $?
+  fi
+}
+
+check_single_plugin() {
+  local plugin_name="$1"
+  local ok=0
+
+  for cat in skills agents mcp-servers hooks; do
+    local manifest="$REPO_DIR/plugins/$cat/$plugin_name/manifest.json"
+    if [ -f "$manifest" ]; then
+      echo -e "${BLUE}Checking: $plugin_name${NC}"
+
+      # Check required CLI tools
+      local tools
+      tools=$(jq -r '(.dependencies.tools // []) | .[]' "$manifest" 2>/dev/null)
+      for tool in $tools; do
+        if command -v "$tool" &> /dev/null; then
+          echo -e "  ${GREEN}OK${NC} CLI tool: $tool"
+        else
+          echo -e "  ${RED}MISSING${NC} CLI tool: $tool — install it before using this plugin"
+          ok=1
+        fi
+      done
+
+      # Check required MCP servers / plugins
+      local mcps
+      mcps=$(jq -r '(.dependencies.mcpServers // []) | .[]' "$manifest" 2>/dev/null)
+      for mcp in $mcps; do
+        # Check if the plugin/MCP is configured in user or project settings
+        local found_mcp=0
+
+        # Check ~/.claude/settings.json for MCP servers
+        if [ -f "$CLAUDE_DIR/settings.json" ]; then
+          if jq -e --arg m "$mcp" '.mcpServers[$m] // empty' "$CLAUDE_DIR/settings.json" &>/dev/null; then
+            found_mcp=1
+          fi
+        fi
+
+        # Check for installed plugins matching the name
+        if [ -d "$CLAUDE_DIR/plugins/cache" ] && find "$CLAUDE_DIR/plugins/cache" -path "*$mcp*" -print -quit 2>/dev/null | grep -q .; then
+          found_mcp=1
+        fi
+
+        # Check settings for plugin references
+        if [ -f "$CLAUDE_DIR/settings.json" ]; then
+          if jq -e --arg m "$mcp" '.plugins // [] | any(. | tostring | contains($m))' "$CLAUDE_DIR/settings.json" &>/dev/null; then
+            found_mcp=1
+          fi
+        fi
+
+        if [ $found_mcp -eq 1 ]; then
+          echo -e "  ${GREEN}OK${NC} Plugin/MCP: $mcp"
+        else
+          echo -e "  ${YELLOW}CHECK${NC} Plugin/MCP: $mcp — may not be configured"
+          echo -e "         Install with: /plugin install $mcp"
+          ok=1
+        fi
+      done
+
+      # Check prerequisites field (extended checks)
+      local prereq_plugins
+      prereq_plugins=$(jq -r '(.prerequisites.plugins // []) | .[].name' "$manifest" 2>/dev/null)
+      for prereq in $prereq_plugins; do
+        local found_prereq=0
+        if [ -d "$CLAUDE_DIR/plugins/cache" ] && find "$CLAUDE_DIR/plugins/cache" -path "*$prereq*" -print -quit 2>/dev/null | grep -q .; then
+          found_prereq=1
+        fi
+        if [ $found_prereq -eq 1 ]; then
+          echo -e "  ${GREEN}OK${NC} Prerequisite plugin: $prereq"
+        else
+          local prereq_desc
+          prereq_desc=$(jq -r --arg p "$prereq" '(.prerequisites.plugins // []) | .[] | select(.name == $p) | .description // ""' "$manifest" 2>/dev/null)
+          echo -e "  ${YELLOW}CHECK${NC} Prerequisite plugin: $prereq — $prereq_desc"
+          ok=1
+        fi
+      done
+
+      # Check network requirement
+      local needs_network
+      needs_network=$(jq -r '.permissions.network // false' "$manifest" 2>/dev/null)
+      if [ "$needs_network" = "true" ]; then
+        if curl -s --max-time 3 https://resonate-jira.atlassian.net > /dev/null 2>&1; then
+          echo -e "  ${GREEN}OK${NC} Network connectivity"
+        else
+          echo -e "  ${YELLOW}CHECK${NC} Network — could not reach resonate-jira.atlassian.net"
+          ok=1
+        fi
+      fi
+
+      if [ $ok -eq 0 ]; then
+        echo -e "  ${GREEN}All prerequisites met!${NC}"
+      else
+        echo -e "  ${YELLOW}Some prerequisites need attention — see above${NC}"
+      fi
+
+      return $ok
+    fi
+  done
+
+  echo "Plugin not found: $plugin_name"
+  return 1
+}
+
+install_plugin() {
+  local plugin_name="$1"
+
+  for cat in skills agents mcp-servers hooks; do
+    local source_dir="$REPO_DIR/plugins/$cat/$plugin_name"
+    if [ -d "$source_dir" ]; then
+
+      # Check prerequisites first
+      echo "Checking prerequisites..."
+      echo ""
+      if ! check_single_plugin "$plugin_name"; then
+        echo ""
+        echo -e "${YELLOW}Warning: Some prerequisites are not met.${NC}"
+        echo -n "Continue with install anyway? [y/N] "
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+          echo "Installation cancelled."
+          exit 0
+        fi
+      fi
+
+      echo ""
+      local target_dir="$CLAUDE_DIR/$cat/$plugin_name"
+
+      echo "Installing $plugin_name to $target_dir..."
+      mkdir -p "$(dirname "$target_dir")"
+      cp -r "$source_dir" "$target_dir"
+
+      # Make scripts executable
+      find "$target_dir" -name "*.sh" -exec chmod +x {} \;
+
+      echo -e "${GREEN}Installed successfully!${NC}"
+      echo ""
+      echo "Next steps:"
+      head -30 "$source_dir/README.md" 2>/dev/null || echo "See plugin README for usage."
+      return 0
+    fi
+  done
+
+  echo "Plugin not found: $plugin_name"
+  exit 1
+}
+
+uninstall_plugin() {
+  local plugin_name="$1"
+
+  for cat in skills agents mcp-servers hooks; do
+    local target_dir="$CLAUDE_DIR/$cat/$plugin_name"
+    if [ -d "$target_dir" ]; then
+      echo "Removing $target_dir..."
+      rm -rf "$target_dir"
+      echo -e "${GREEN}Uninstalled $plugin_name${NC}"
+      return 0
+    fi
+  done
+
+  echo "Plugin not installed: $plugin_name"
+  exit 1
+}
+
+# Main
+case "${1:-}" in
+  list)
+    list_plugins "${2:-}"
+    ;;
+  search)
+    [ -z "${2:-}" ] && { echo "Usage: de-plugins search <query>"; exit 1; }
+    search_plugins "$2"
+    ;;
+  info)
+    [ -z "${2:-}" ] && { echo "Usage: de-plugins info <plugin>"; exit 1; }
+    info_plugin "$2"
+    ;;
+  install)
+    [ -z "${2:-}" ] && { echo "Usage: de-plugins install <plugin>"; exit 1; }
+    install_plugin "$2"
+    ;;
+  uninstall)
+    [ -z "${2:-}" ] && { echo "Usage: de-plugins uninstall <plugin>"; exit 1; }
+    uninstall_plugin "$2"
+    ;;
+  check)
+    check_prerequisites "${2:-}"
+    ;;
+  validate)
+    node "$SCRIPT_DIR/validate-manifests.js"
+    ;;
+  -h|--help|help|"")
+    usage
+    ;;
+  *)
+    echo "Unknown command: $1"
+    usage
+    exit 1
+    ;;
+esac
