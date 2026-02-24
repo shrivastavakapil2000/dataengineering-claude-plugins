@@ -209,24 +209,42 @@ check_single_plugin() {
       local mcps
       mcps=$(jq -r '(.dependencies.mcpServers // []) | .[]' "$manifest" 2>/dev/null)
       for mcp in $mcps; do
-        # Check if the plugin/MCP is configured in user or project settings
         local found_mcp=0
 
-        # Check ~/.claude/settings.json for MCP servers
+        # 1. Check ~/.claude/settings.json mcpServers section
         if [ -f "$CLAUDE_DIR/settings.json" ]; then
           if jq -e --arg m "$mcp" '.mcpServers[$m] // empty' "$CLAUDE_DIR/settings.json" &>/dev/null; then
             found_mcp=1
           fi
         fi
 
-        # Check for installed plugins matching the name
-        if [ -d "$CLAUDE_DIR/plugins/cache" ] && find "$CLAUDE_DIR/plugins/cache" -path "*$mcp*" -print -quit 2>/dev/null | grep -q .; then
-          found_mcp=1
+        # 2. Check plugin cache for installed plugins matching the name
+        if [ $found_mcp -eq 0 ] && [ -d "$CLAUDE_DIR/plugins/cache" ]; then
+          if find "$CLAUDE_DIR/plugins/cache" -path "*$mcp*" -print -quit 2>/dev/null | grep -q .; then
+            found_mcp=1
+          fi
         fi
 
-        # Check settings for plugin references
-        if [ -f "$CLAUDE_DIR/settings.json" ]; then
-          if jq -e --arg m "$mcp" '.plugins // [] | any(. | tostring | contains($m))' "$CLAUDE_DIR/settings.json" &>/dev/null; then
+        # 3. Check enabledPlugins for plugin references
+        if [ $found_mcp -eq 0 ] && [ -f "$CLAUDE_DIR/settings.json" ]; then
+          if jq -e --arg m "$mcp" '.enabledPlugins // {} | keys | any(contains($m))' "$CLAUDE_DIR/settings.json" &>/dev/null; then
+            found_mcp=1
+          fi
+        fi
+
+        # 4. Check permissions.allow for tool patterns matching this MCP server
+        #    Built-in connectors (Slack, Figma) use mcp__claude_ai_<Name>__*
+        #    MCP servers use mcp__<server-name>__*
+        #    Plugins use mcp__plugin_<name>_<name>__*
+        if [ $found_mcp -eq 0 ] && [ -f "$CLAUDE_DIR/settings.json" ]; then
+          if jq -e --arg m "$mcp" '
+            .permissions.allow // [] | any(
+              test("mcp__.*" + ($m | gsub("-";"_") | gsub("-";"")) + "__"; "i") or
+              test("mcp__claude_ai_" + ($m | gsub("-";"_") | gsub("-";"")) + "__"; "i") or
+              test("mcp__plugin_.*" + ($m | gsub("-";"_") | gsub("-";"")) + "__"; "i") or
+              test("mcp__" + $m + "__"; "i")
+            )
+          ' "$CLAUDE_DIR/settings.json" &>/dev/null; then
             found_mcp=1
           fi
         fi
@@ -234,76 +252,118 @@ check_single_plugin() {
         if [ $found_mcp -eq 1 ]; then
           echo -e "  ${GREEN}OK${NC} Plugin/MCP: $mcp"
         else
-          echo -e "  ${YELLOW}CHECK${NC} Plugin/MCP: $mcp — may not be configured"
-          echo -e "         Install with: /plugin install $mcp"
-          ok=1
+          # Built-in Claude Code connectors can't be detected from disk — treat as INFO, not failure
+          case "$mcp" in
+            slack|figma|microsoft-365)
+              echo -e "  ${YELLOW}INFO${NC} Plugin/MCP: $mcp — built-in Claude Code connector (not detectable from disk)"
+              ;;
+            *)
+              echo -e "  ${YELLOW}CHECK${NC} Plugin/MCP: $mcp — may not be configured"
+              echo -e "         Install with: /plugin install $mcp"
+              ok=1
+              ;;
+          esac
         fi
 
         # Deep connectivity checks per MCP server type
         case "$mcp" in
           atlassian)
-            # Verify Jira connectivity
+            # Verify Jira API reachability
             if curl -sf --max-time 5 "https://resonate-jira.atlassian.net/rest/api/3/serverInfo" -o /dev/null 2>/dev/null; then
               echo -e "  ${GREEN}OK${NC} Jira API: resonate-jira.atlassian.net reachable"
             else
               echo -e "  ${YELLOW}CHECK${NC} Jira API: cannot reach resonate-jira.atlassian.net"
               ok=1
             fi
-            # Verify Confluence connectivity (accept any HTTP response — auth is handled by the Atlassian plugin)
+            # Verify Confluence API reachability (accept 401/403 — auth is handled by the Atlassian plugin)
             local confluence_http_code
             confluence_http_code=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" "https://resonate-jira.atlassian.net/wiki/rest/api/space?limit=1" 2>/dev/null)
             if [ "$confluence_http_code" -ge 200 ] && [ "$confluence_http_code" -lt 500 ] 2>/dev/null; then
               echo -e "  ${GREEN}OK${NC} Confluence API: wiki endpoint reachable (HTTP $confluence_http_code — auth via Atlassian plugin)"
             else
-              echo -e "  ${YELLOW}CHECK${NC} Confluence API: cannot reach wiki endpoint (HTTP $confluence_http_code) — ensure Atlassian plugin has Confluence access"
+              echo -e "  ${YELLOW}CHECK${NC} Confluence API: cannot reach wiki endpoint (HTTP $confluence_http_code)"
               ok=1
             fi
             ;;
           slack)
-            # Slack connectivity is managed through Claude Code plugin — verify plugin cache exists
-            if [ -d "$CLAUDE_DIR/plugins/cache" ] && find "$CLAUDE_DIR/plugins/cache" -path "*slack*" -o -path "*Slack*" 2>/dev/null | grep -qi slack; then
-              echo -e "  ${GREEN}OK${NC} Slack plugin: found in plugin cache"
-            else
-              echo -e "  ${YELLOW}CHECK${NC} Slack plugin: not found in cache — connect Slack via Claude Code settings"
-              ok=1
+            # Slack is a built-in Claude Code connector (mcp__claude_ai_Slack__*)
+            # Cannot be detected from disk — managed at the application level
+            if [ $found_mcp -eq 0 ]; then
+              # Override the CHECK status — Slack can't be detected from bash
+              echo -e "  ${YELLOW}INFO${NC} Slack is a built-in Claude Code connector — verify with: /mcp in Claude Code"
             fi
             ;;
           aws-ccapi)
-            # Check AWS credentials are configured
+            # aws-ccapi MCP server manages its own credentials
+            # Shell AWS CLI creds are separate — check is informational only
             if command -v aws &>/dev/null; then
-              echo -e "  ${GREEN}OK${NC} AWS CLI: installed"
               if aws sts get-caller-identity &>/dev/null; then
                 local aws_account aws_arn
                 aws_account=$(aws sts get-caller-identity --query 'Account' --output text 2>/dev/null || echo "unknown")
                 aws_arn=$(aws sts get-caller-identity --query 'Arn' --output text 2>/dev/null || echo "unknown")
-                echo -e "  ${GREEN}OK${NC} AWS auth: account $aws_account ($aws_arn)"
+                echo -e "  ${GREEN}OK${NC} AWS shell session: account $aws_account ($aws_arn)"
               else
-                echo -e "  ${RED}MISSING${NC} AWS auth: credentials not configured or expired"
-                echo -e "         Run 'aws configure' or set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY"
-                ok=1
+                echo -e "  ${YELLOW}INFO${NC} AWS shell session: no active credentials (aws-ccapi MCP server uses its own auth)"
               fi
-            else
-              echo -e "  ${YELLOW}CHECK${NC} AWS CLI: not installed (aws-ccapi MCP server may handle auth independently)"
             fi
             ;;
         esac
       done
 
-      # Check prerequisites field (extended checks)
+      # Check prerequisites field (extended checks — same multi-tier detection as MCP servers)
       local prereq_plugins
       prereq_plugins=$(jq -r '(.prerequisites.plugins // []) | .[].name' "$manifest" 2>/dev/null)
       for prereq in $prereq_plugins; do
         local found_prereq=0
-        if [ -d "$CLAUDE_DIR/plugins/cache" ] && find "$CLAUDE_DIR/plugins/cache" -path "*$prereq*" -print -quit 2>/dev/null | grep -q .; then
-          found_prereq=1
+
+        # 1. Check installed_plugins.json (most reliable for actual plugins)
+        if [ -f "$CLAUDE_DIR/plugins/installed_plugins.json" ]; then
+          if jq -e --arg p "$prereq" '.plugins | keys | any(contains($p))' "$CLAUDE_DIR/plugins/installed_plugins.json" &>/dev/null; then
+            found_prereq=1
+          fi
         fi
+
+        # 2. Check plugin cache
+        if [ $found_prereq -eq 0 ] && [ -d "$CLAUDE_DIR/plugins/cache" ]; then
+          if find "$CLAUDE_DIR/plugins/cache" -path "*$prereq*" -print -quit 2>/dev/null | grep -q .; then
+            found_prereq=1
+          fi
+        fi
+
+        # 3. Check enabledPlugins in settings.json
+        if [ $found_prereq -eq 0 ] && [ -f "$CLAUDE_DIR/settings.json" ]; then
+          if jq -e --arg p "$prereq" '.enabledPlugins // {} | keys | any(contains($p))' "$CLAUDE_DIR/settings.json" &>/dev/null; then
+            found_prereq=1
+          fi
+        fi
+
+        # 4. Check permissions.allow for tool patterns (catches MCP servers and built-in connectors)
+        if [ $found_prereq -eq 0 ] && [ -f "$CLAUDE_DIR/settings.json" ]; then
+          if jq -e --arg p "$prereq" '
+            .permissions.allow // [] | any(
+              test("mcp__.*" + ($p | gsub("-";"_") | gsub("-";"")) + "__"; "i") or
+              test("mcp__" + $p + "__"; "i")
+            )
+          ' "$CLAUDE_DIR/settings.json" &>/dev/null; then
+            found_prereq=1
+          fi
+        fi
+
         if [ $found_prereq -eq 1 ]; then
-          echo -e "  ${GREEN}OK${NC} Prerequisite plugin: $prereq"
+          echo -e "  ${GREEN}OK${NC} Prerequisite: $prereq"
         else
           local prereq_desc
           prereq_desc=$(jq -r --arg p "$prereq" '(.prerequisites.plugins // []) | .[] | select(.name == $p) | .description // ""' "$manifest" 2>/dev/null)
-          echo -e "  ${YELLOW}CHECK${NC} Prerequisite plugin: $prereq — $prereq_desc"
-          ok=1
+          # Built-in connectors (slack, figma, etc.) can't be detected from disk
+          case "$prereq" in
+            slack|figma|microsoft-365)
+              echo -e "  ${YELLOW}INFO${NC} Prerequisite: $prereq — built-in Claude Code connector, verify with: /mcp"
+              ;;
+            *)
+              echo -e "  ${YELLOW}CHECK${NC} Prerequisite: $prereq — $prereq_desc"
+              ok=1
+              ;;
+          esac
         fi
       done
 
