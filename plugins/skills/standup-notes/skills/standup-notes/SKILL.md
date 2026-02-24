@@ -112,7 +112,7 @@ For each issue found, call `getJiraIssue` with `expand=changelog` and `fields=["
 - When a Jira ticket has sparse details (no description, no comments), cross-reference Slack messages and Confluence edits to find additional context about what the engineer actually did
 - If no additional context is found anywhere, use the ticket title as-is — do not invent details
 
-Condense into max 5 bullet points, 12 words max each.
+Condense into max 5 bullet points, 40 words max each.
 
 #### 2b. GitHub Activity
 
@@ -133,7 +133,7 @@ gh search prs --involves="<full name>" --updated=">=$YESTERDAY" --org=resonate -
 
 If GitHub search returns no results or errors for a specific engineer, note it but continue — do not stop.
 
-Condense into max 5 bullet points, 12 words max each. Group related items.
+Condense into max 5 bullet points, 40 words max each. Group related items.
 
 #### 2c. Slack Activity
 
@@ -149,7 +149,7 @@ Focus on messages in team channels (data-engineering, activation, daas-squad, ap
 
 If Slack search does not support date filtering or the `from:` prefix, search for the engineer's name and filter results manually by date.
 
-Condense into max 5 bullet points, 12 words max each. Only include substantive work-related messages, not casual chat.
+Condense into max 5 bullet points, 40 words max each. Only include substantive work-related messages, not casual chat.
 
 #### 2d. Confluence Activity
 
@@ -177,7 +177,7 @@ Search for PagerDuty incidents involving the engineer yesterday:
    - `until`: today start of day (ISO format)
 3. Also check `list_log_entries` for the user's activity (acknowledged, resolved, escalated, etc.)
 
-Condense PagerDuty activity into max 5 bullet points, 12 words max each. Include:
+Condense PagerDuty activity into max 5 bullet points, 40 words max each. Include:
 - Incidents triggered, acknowledged, or resolved
 - Services affected
 - Actions taken
@@ -237,11 +237,13 @@ Open Standup Questions:
 
 Rules for bullet points:
 - Maximum 5 bullets per section (Yesterday, Pagerduty)
-- Maximum 12 words per bullet
-- **One work item per bullet** — each distinct ticket, PR, or task gets its own bullet. Do not combine separate work items into a single bullet (e.g., "Completed CDP-118382" and "Started CDP-117816" must be two separate bullets, not one)
+- Maximum 40 words per bullet
+- **Focus on actual work done, not Jira metadata.** Describe WHAT the engineer built, fixed, tested, documented, or investigated — not status transitions, timestamps, or who moved the ticket. Bad: "CDP-118382 moved To Do → Done at 11:52 AM". Good: "CDP-118382 — Documented the process for adding a consumer in Snowflake external sharing (2h)".
+- **One work item per bullet** — each distinct ticket, PR, or task gets its own bullet. Do not combine separate work items into a single bullet (e.g., "CDP-118382" and "CDP-117816" must be two separate bullets, not one)
 - Group only truly related sub-actions into single bullets (e.g., "Opened PR and flagged for review" is one action)
+- **Synthesize across sources** — combine Jira title, ticket description, Slack messages, PR titles, and Confluence edits to describe the actual work. A Jira title alone may not tell the full story; Slack messages often have the richest context about what was done.
 - Be precise and executive-summary style
-- Use action verbs: "Completed CDP-XXXXX...", "Released CDP-XXXXX...", "Resolved incident on..."
+- Use action verbs: "Documented...", "Fixed...", "Built...", "Investigated...", "Tested...", "Released..."
 - **Link all ticket keys** — every Jira ticket key (e.g., CDP-118382, CON-798) must be a hyperlink to `https://resonate-jira.atlassian.net/browse/<KEY>`. In Confluence ADF, use a `smartLink` or `inlineCard` node. In markdown, use `[CDP-118382](https://resonate-jira.atlassian.net/browse/CDP-118382)`. Never leave a ticket key as plain text.
 - If no activity found in any source, write "No updates found in Jira/Slack/GitHub — please update"
 - If engineer was OOO, just write "OOO" for Yesterday
