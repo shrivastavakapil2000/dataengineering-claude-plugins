@@ -14,14 +14,15 @@ Generate daily standup notes for the **Activation** and **Append** squads by gat
    - **PagerDuty** — incidents triggered/acknowledged/resolved
 4. Generates work-focused bullet-point summaries (max 5 bullets, 40 words each) describing what was actually built, fixed, tested, or documented
 5. Links all Jira ticket keys as hyperlinks
-6. Updates the Confluence standup page with today's section
+6. Displays the generated notes for review (does not write to Confluence)
 
 ## Usage
 
 ```
-/standup-notes              # Generate for both squads
-/standup-notes activation   # Activation squad only
-/standup-notes append         # Append squad only
+/standup-notes                      # Generate for both squads
+/standup-notes activation           # Activation squad only
+/standup-notes append               # Append squad only
+/standup-notes Jonathan Hudson      # Single engineer (updates their squad page)
 ```
 
 ## Squads
@@ -57,6 +58,8 @@ Pagerduty:
 - **Ticket hyperlinks** — all ticket keys link to Jira browse URLs
 - **PTO/OOO gating** — must complete PTO check before composing any notes
 - **No 1-on-1 DMs** — only channel and group DM messages are reported
+- **Single-engineer mode** — provide an engineer's name to generate only their report; cross-squad tickets are included
+- **Display only** — notes are shown for review, not written to Confluence automatically
 
 ## Prerequisites
 
@@ -73,4 +76,3 @@ Run `./scripts/de-plugins check standup-notes` to verify all prerequisites.
 
 - If any service is unreachable, the skill reports the error and stops
 - No workarounds are attempted — the user is asked to fix connectivity
-- If today's section already exists, the skill skips that squad to avoid duplicates

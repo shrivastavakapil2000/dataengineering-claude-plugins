@@ -1,9 +1,9 @@
 ---
 name: standup-notes
 description: Generate daily standup notes for Activation and Append squads
-allowed-tools: mcp__plugin_atlassian_atlassian__getConfluencePage, mcp__plugin_atlassian_atlassian__getConfluencePageDescendants, mcp__plugin_atlassian_atlassian__updateConfluencePage, mcp__plugin_atlassian_atlassian__searchJiraIssuesUsingJql, mcp__plugin_atlassian_atlassian__getJiraIssue, mcp__plugin_atlassian_atlassian__searchConfluenceUsingCql, mcp__plugin_atlassian_atlassian__search, mcp__plugin_atlassian_atlassian__lookupJiraAccountId, mcp__claude_ai_Atlassian__getConfluencePage, mcp__claude_ai_Atlassian__getConfluencePageDescendants, mcp__claude_ai_Atlassian__updateConfluencePage, mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql, mcp__claude_ai_Atlassian__getJiraIssue, mcp__claude_ai_Atlassian__searchConfluenceUsingCql, mcp__claude_ai_Atlassian__search, mcp__claude_ai_Atlassian__lookupJiraAccountId, mcp__claude_ai_Slack__slack_search_public_and_private, mcp__claude_ai_Slack__slack_search_channels, mcp__claude_ai_Slack__slack_read_thread, mcp__claude_ai_Slack__slack_read_channel, mcp__claude_ai_Slack__slack_search_users, mcp__pagerduty__list_incidents, mcp__pagerduty__get_incident, mcp__pagerduty__list_log_entries, mcp__pagerduty__get_user_data, mcp__pagerduty__list_users, mcp__pagerduty__list_oncalls, Bash, Read, Write
+allowed-tools: mcp__plugin_atlassian_atlassian__searchJiraIssuesUsingJql, mcp__plugin_atlassian_atlassian__getJiraIssue, mcp__plugin_atlassian_atlassian__searchConfluenceUsingCql, mcp__plugin_atlassian_atlassian__search, mcp__plugin_atlassian_atlassian__lookupJiraAccountId, mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql, mcp__claude_ai_Atlassian__getJiraIssue, mcp__claude_ai_Atlassian__searchConfluenceUsingCql, mcp__claude_ai_Atlassian__search, mcp__claude_ai_Atlassian__lookupJiraAccountId, mcp__claude_ai_Slack__slack_search_public_and_private, mcp__claude_ai_Slack__slack_search_channels, mcp__claude_ai_Slack__slack_read_thread, mcp__claude_ai_Slack__slack_read_channel, mcp__claude_ai_Slack__slack_search_users, mcp__pagerduty__list_incidents, mcp__pagerduty__get_incident, mcp__pagerduty__list_log_entries, mcp__pagerduty__get_user_data, mcp__pagerduty__list_users, mcp__pagerduty__list_oncalls, Bash, Read, Write
 user-invocable: true
-argument-hint: [activation|append|both] (default: both)
+argument-hint: [activation|append|both|<engineer name>] (default: both)
 ---
 
 # Daily Standup Notes Generator
@@ -42,9 +42,18 @@ Page structure: **Parent folder with child pages per sprint**. Each sprint is a 
 
 ## Input
 
-The user provides an optional argument: `activation`, `append`, or `both` (default: `both`).
+The user provides an optional argument: `activation`, `append`, `both`, or an **engineer's name** (default: `both`).
 
 If no argument is provided, generate notes for both squads.
+
+### Single-Engineer Mode
+
+If the user provides an engineer's name (e.g., `/standup-notes Jonathan Hudson`):
+1. Look up which squad(s) the engineer belongs to from the Squad Configuration tables above
+2. Gather activity for **only that engineer** (Steps 2a–2f)
+3. Generate and post notes for that engineer in their squad's standup page
+4. If the engineer has stories/tickets that span across squads (e.g., an Append engineer working on an Activation ticket), include those cross-squad items in the engineer's update on their home squad page
+5. Only update the squad page(s) where the engineer is listed — do not touch other squad pages
 
 ## Workflow
 
@@ -52,7 +61,7 @@ If no argument is provided, generate notes for both squads.
 
 Before doing anything else, verify connectivity to ALL required services. Run these checks in parallel:
 
-1. **Confluence**: Call `searchConfluenceUsingCql` with `title ~ "Append Daily Scrum" AND space = "PROD"` to verify Confluence connectivity. If this fails, report the error and STOP.
+1. **Confluence**: Call `searchConfluenceUsingCql` with `title ~ "PTO" AND space = "PROD"` to verify Confluence connectivity (needed for PTO checks). If this fails, report the error and STOP.
 2. **Jira**: Call `searchJiraIssuesUsingJql` with a simple query like `project = CDP AND updated >= -1d ORDER BY updated DESC` (limit 1). If this fails, report the error and STOP.
 3. **Slack**: Call `slack_search_channels` with query `data-engineering`. If this fails, report the error and STOP.
 4. **PagerDuty**: Call `list_users` (limit 1). If this fails, report the error and STOP.
@@ -244,7 +253,7 @@ Rules for bullet points:
 - **Synthesize across sources** — combine Jira title, ticket description, Slack messages, PR titles, and Confluence edits to describe the actual work. A Jira title alone may not tell the full story; Slack messages often have the richest context about what was done.
 - Be precise and executive-summary style
 - Use action verbs: "Documented...", "Fixed...", "Built...", "Investigated...", "Tested...", "Released..."
-- **Link all ticket keys** — every Jira ticket key (e.g., CDP-118382, CON-798) must be a hyperlink to `https://resonate-jira.atlassian.net/browse/<KEY>`. In Confluence ADF, use a `smartLink` or `inlineCard` node. In markdown, use `[CDP-118382](https://resonate-jira.atlassian.net/browse/CDP-118382)`. Never leave a ticket key as plain text.
+- **Link all ticket keys** — every Jira ticket key (e.g., CDP-118382, CON-798) must be a hyperlink: `[CDP-118382](https://resonate-jira.atlassian.net/browse/CDP-118382)`. Never leave a ticket key as plain text.
 - If no activity found in any source, write "No updates found in Jira/Slack/GitHub — please update"
 - If engineer was OOO, just write "OOO" for Yesterday
 - **Pagerduty**: Leave blank if no activity — do not write "No PagerDuty activity"
@@ -252,147 +261,63 @@ Rules for bullet points:
 
 Combine the engineer notes into a "Team Notes:" section header followed by all engineers' notes.
 
-### Step 4 — Update Confluence (Activation Squad)
+### Step 4 — Display Results
 
-Skip this step if the user specified `append` only.
+Present the generated standup notes to the user for review. Do NOT update Confluence automatically.
 
-#### 4a. Find the current sprint page
-
-Call `getConfluencePageDescendants` on the Activation parent page (ID `5989793812`) to list all child pages.
-
-Identify the **most recent sprint page** — this is the child page with the highest sprint number. The title follows the pattern `Sprint NNN Activation Daily Scrum Notes` or `Sprint NNN - Activation Daily Scrum Notes`.
-
-#### 4b. Read the current sprint page
-
-Call `getConfluencePage` with the sprint page ID. Read the full body content.
-
-#### 4c. Check if today's date already exists
-
-Search the page content for today's date string (e.g., "Tuesday, Feb 24, 2026" or "Feb 24, 2026" or "2/24/2026"). Check multiple date formats.
-
-If today's date section already exists:
-- Report to the user: "Today's section already exists on the Activation standup page. Skipping to avoid duplicates."
-- Do NOT overwrite or modify existing content
-- STOP processing this squad (continue with Append if applicable)
-
-#### 4d. Insert today's section
-
-Read the existing page content carefully to understand the exact HTML/ADF structure being used. The new daily entry MUST match the existing format exactly.
-
-The daily entry should be inserted **after the template section** and **before any previous daily entries** (reverse chronological order — newest at top).
-
-The table structure for Activation follows this pattern (adapt to match the exact format observed in the page):
+For each squad in scope, display the notes in this format:
 
 ```
-| Tuesday, Feb 24, 2026 |
-|---|
-| **Team Notes:** |
-| @Mike Brant |
-| Yesterday: |
-| - bullet 1 |
-| - bullet 2 |
-| Today: |
-| Post Scrum: |
-| Open Standup Questions: |
-| |
-| @Nathan Conroy |
-| Yesterday: |
-| - bullet 1 |
-| Today: |
-| Post Scrum: |
-| Open Standup Questions: |
-|---|
-| Impediments: None |
-```
-
-CRITICAL: Read the existing page content first and replicate the exact same table/HTML/ADF structure. Do not guess the format. Match indentation, tags, and spacing exactly.
-
-Call `updateConfluencePage` with the modified content. Preserve the page title and all existing content.
-
-### Step 5 — Update Confluence (Append Squad)
-
-Skip this step if the user specified `activation` only.
-
-#### 5a. Find the current sprint page
-
-Since the Append parent is a **folder** (ID `5472681995`), you cannot use `getConfluencePageDescendants`. Instead, use CQL search:
-
-```
-CQL: title ~ "Append Daily Scrum" AND space = "PROD" ORDER BY created DESC
-```
-
-Identify the **most recent sprint page** — the child page with the highest sprint number. The title follows the pattern `Sprint NNN Append Daily Scrum Note`.
-
-#### 5b. Read the current sprint page
-
-Call `getConfluencePage` with the sprint page ID. Read the full body content.
-
-#### 5c. Check if today's date already exists
-
-Search the page content for today's date string (e.g., "Tuesday, Feb 24, 2026" or "Feb 24, 2026" or "2/24/2026"). Check multiple date formats.
-
-If today's date section already exists:
-- Report to the user: "Today's section already exists on the Append standup page. Skipping to avoid duplicates."
-- Do NOT overwrite or modify existing content
-- STOP processing this squad
-
-#### 5d. Insert today's section
-
-Insert the new daily entry **after the template section** and **before any previous daily entries** (reverse chronological order — newest at top).
-
-The table structure for Append follows this pattern (adapt to match the exact format observed in the page):
-
-```
-| Tuesday, Feb 24, 2026 |
-|---|
-| **Team Notes:** |
-| @Jonathan Hudson |
-| Yesterday: |
-| - bullet 1 |
-| - bullet 2 |
-| Today: |
-| Post Scrum: |
-| Open Standup Questions: |
-| |
-| @Sayali Patwardhan |
-| Yesterday: |
-| - bullet 1 |
-| Today: |
-| Post Scrum: |
-| Open Standup Questions: |
-| |
-| @Joe Xu |
-| Yesterday: |
-| - bullet 1 |
-| Today: |
-| Post Scrum: |
-| Open Standup Questions: |
-|---|
-| Impediments: None |
-```
-
-CRITICAL: Read the existing page content first and replicate the exact same table/HTML/ADF structure. Do not guess the format. Match the structure of the most recent existing daily entry exactly.
-
-Call `updateConfluencePage` with the modified content. Preserve the page title and all existing content.
-
-### Step 6 — Report Results
-
-Present a summary to the user:
-
-```
-## Standup Notes Generated
+## Standup Notes — <DayOfWeek>, <Mon DD, YYYY>
 
 ### Activation Squad
-- Page: [Sprint NNN Activation Daily Scrum Notes](link)
-- Date section added: Tuesday, Feb 24, 2026
-- Engineers: Mike Brant, Nathan Conroy
-- Status: Updated successfully / Skipped (already exists) / Error
+
+**Mike Brant**
+Yesterday:
+- <bullet 1>
+- <bullet 2>
+Today:
+Post Scrum:
+Pagerduty:
+Open Standup Questions:
+
+**Nathan Conroy**
+Yesterday:
+- <bullet 1>
+Today:
+Post Scrum:
+Pagerduty:
+Open Standup Questions:
+
+---
 
 ### Append Squad
-- Page: [Sprint NNN Append Daily Scrum Note](link)
-- Date section added: Tuesday, Feb 24, 2026
-- Engineers: Jonathan Hudson, Sayali Patwardhan, Joe Xu
-- Status: Updated successfully / Skipped (already exists) / Error
+
+**Jonathan Hudson**
+Yesterday:
+- <bullet 1>
+Today:
+Post Scrum:
+Pagerduty:
+Open Standup Questions:
+
+**Sayali Patwardhan**
+Yesterday:
+- <bullet 1>
+Today:
+Post Scrum:
+Pagerduty:
+Open Standup Questions:
+
+**Joe Xu**
+Yesterday:
+- <bullet 1>
+Today:
+Post Scrum:
+Pagerduty:
+Open Standup Questions:
+
+---
 
 ### Data Sources Used
 - Jira: X issues found across Y engineers
@@ -402,14 +327,12 @@ Present a summary to the user:
 - Confluence: X page edits found
 
 ### Notes
-- Items marked "To be filled by engineer" need manual updates
 - Review auto-generated "Yesterday" bullets for accuracy before standup
+- Engineers should fill in Today, Post Scrum, and Pagerduty sections themselves
 ```
 
 ## Error Handling
 
-- **Confluence page not found**: Report the error. The sprint page may have changed — ask the user for the correct page URL.
-- **Confluence update fails**: Report the error with details. Common causes: page was edited by someone else (version conflict), permission denied, or page is locked.
 - **Jira search fails**: Report but continue with other data sources. Note which engineers had no Jira data.
 - **GitHub search fails**: Report but continue. Note "GitHub data unavailable" in the affected engineer's bullets.
 - **Slack search fails**: Report but continue. Note "Slack data unavailable" in the affected engineer's bullets.
@@ -421,8 +344,6 @@ Present a summary to the user:
 
 1. **Use connectors only** — never try to work around a failed connector (e.g., don't try web scraping if Confluence API fails)
 2. **Ask the user** when encountering any ambiguity or missing data — do not guess or assume
-3. **Preserve existing content** — never delete or modify existing standup entries
-4. **Match existing format** — always read the page first and match the exact format used
-5. **Business days only** — skip weekends when calculating "yesterday"
-6. **No secrets** — never include credentials, tokens, or sensitive data in standup notes
-7. **Idempotent** — if today's section already exists, do not create a duplicate
+3. **Business days only** — skip weekends when calculating "yesterday"
+4. **No secrets** — never include credentials, tokens, or sensitive data in standup notes
+5. **Display only** — do not write to Confluence; the user will copy/paste or update manually
