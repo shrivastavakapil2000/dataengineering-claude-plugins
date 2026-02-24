@@ -41,29 +41,39 @@ That's it. One input — the Jira ticket key you're deploying.
 
 | Step | Action |
 |------|--------|
-| 1 | Reads the source ticket (summary, description, repos, assignee) |
-| 2 | Creates a CMR ticket: `[Deploy] <source summary>` |
+| 1 | Reads the source ticket (summary, description, repos, assignee, PRs) |
+| 2 | Creates a CMR ticket following the [Resonate CMR template](https://resonate-jira.atlassian.net/wiki/spaces/EN/pages/4012245264): summary with `[No-Downtime]` suffix, due date, full description with Release Manager, repos, reason, PR links |
 | 3 | Links CMR to source ticket (or adds cross-reference comments as fallback) |
-| 4 | Shows you a preview of the Slack message for approval |
-| 5 | Sends `@here` notification to `data-engineering-only` with ticket links and repo list |
+| 4 | Sends `@here` notification to `data-engineering-only` immediately with ticket links and repo list |
 
 ## Example
 
 ```
 > /deploy-cmr CDP-118328
 
-Created CMR-1305: [Deploy] Clean Room Native App — Final Pre-Production Audit Fixes
+Created CMR-1305: Deploy Clean Room Audit Fixes [No-Downtime]
+  Due date: 2026-02-24
+  Release Manager: Kapil Shrivastava
   Linked to: CDP-118328
   Repos: resonate-snowflake-native-apps
 
-Slack message preview:
+Sent to #data-engineering-only:
   @here Prod deployment is being done for CDP-118328 — Clean Room Native App — Final Pre-Production Audit Fixes
   CMR: https://resonate-jira.atlassian.net/browse/CMR-1305
   Work Item: https://resonate-jira.atlassian.net/browse/CDP-118328
   Repos: resonate-snowflake-native-apps
-
-Send to #data-engineering-only? [y/n]
 ```
+
+## CMR Template Compliance
+
+This skill follows the [Resonate CMR template](https://resonate-jira.atlassian.net/wiki/spaces/EN/pages/4012245264):
+
+- Summary ends with `[No-Downtime]` (default) or `[Downtime]`
+- Due date set to today
+- Description includes: Release Manager, repos, reason, PR links, QA reference, release page reference
+- CMR linked to the source engineering ticket
+
+For full release reviews (new features, infrastructure changes, multi-service deploys), create a release plan in Confluence first per the [Engineering Release Review Process](https://resonate-jira.atlassian.net/wiki/spaces/PROD/pages/5145133264).
 
 ## Configuration
 

@@ -8,7 +8,7 @@ argument-hint: <TICKET-KEY> (e.g., CDP-118328)
 
 # Deploy CMR Skill
 
-Create a Change Management Request (CMR) ticket in Jira linked to a work item, then notify the `data-engineering-only` Slack channel about the prod deployment.
+Create a Change Management Request (CMR) ticket in Jira following Resonate's CMR template, link it to the source work item, then notify the `data-engineering-only` Slack channel about the prod deployment.
 
 ## Constants
 
@@ -17,6 +17,15 @@ Create a Change Management Request (CMR) ticket in Jira linked to a work item, t
 - **CMR Issue Type**: `Change Request`
 - **Issue Link Type**: `Relates` (id `10003`)
 - **Slack Channel Name**: `data-engineering-only`
+
+## CMR Template Reference
+
+Resonate's CMR template (https://resonate-jira.atlassian.net/wiki/spaces/EN/pages/4012245264) requires:
+
+- **Summary**: 5-10 words describing the change, ending with `[No-Downtime]` or `[Downtime]`
+- **Due Date**: The date the release will occur
+- **Description**: Must include Release Manager, affected services/repos, reason, PR links, QA environment, and link to Release Page (if applicable)
+- **Linkages**: CMR must be linked to the engineering ticket(s)
 
 ## Input
 
@@ -33,7 +42,8 @@ Fetch the source ticket using `getJiraIssue` with the cloud ID above. Request th
 Extract:
 - **Summary**: The ticket's summary field
 - **Repositories**: Look for GitHub repository URLs (patterns like `github.com/resonate/<repo-name>`) or repo names mentioned in the description. Also check sub-task descriptions if the main description doesn't contain repos. Collect all unique repo names.
-- **Assignee**: Who is assigned to the ticket
+- **Assignee**: Who is assigned to the ticket (this is the Release Manager)
+- **PR links**: Look for GitHub PR URLs in the description
 
 If the ticket cannot be found, report the error and stop.
 
@@ -43,23 +53,46 @@ Create a new ticket in the CMR project using `createJiraIssue`:
 
 - **projectKey**: `CMR`
 - **issueTypeName**: `Change Request`
-- **summary**: Use the source ticket's summary, prefixed with `[Deploy]` (e.g., `[Deploy] Clean Room Native App — Final Pre-Production Audit Fixes`)
-- **description**: Use this template (in Markdown):
+- **summary**: Follow the Resonate CMR summary format — 5-10 words ending with `[No-Downtime]`. Example: `Deploy <source summary abbreviated> [No-Downtime]`
+- **description**: Use this template (in Markdown), following the Resonate CMR template:
 
 ```
 ## Change Request
 
-**Work Item**: [<SOURCE_KEY>](https://resonate-jira.atlassian.net/browse/<SOURCE_KEY>)
-**Summary**: <source ticket summary>
-**Assignee**: <source ticket assignee or "Unassigned">
+**Release Manager**: <source ticket assignee, or "Unassigned — please update">
+**Due Date**: <today's date in YYYY-MM-DD format>
+**Downtime**: No
 
-### Repositories Being Deployed
+### Work Item
 
-<bulleted list of repos, or "TBD — repos not found in ticket description" if none extracted>
+[<SOURCE_KEY> — <source ticket summary>](https://resonate-jira.atlassian.net/browse/<SOURCE_KEY>)
 
-### Change Description
+### Services / Repositories Being Deployed
+
+<bulleted list of repos with GitHub links if found, or "See linked ticket for details" if none extracted>
+
+### Reason for Release
 
 Production deployment for <SOURCE_KEY>. See linked work item for full details.
+
+### QA / Testing
+
+Tested as part of <SOURCE_KEY>. See linked ticket for test details.
+
+### PR Links
+
+<bulleted list of PR URLs if found in the ticket, or "See linked ticket for PR details">
+
+### Release Page
+
+N/A — Simple deployment. See linked work item.
+```
+
+- **additional_fields**: Set the due date to today:
+```json
+{
+  "duedate": "<today's date in YYYY-MM-DD format>"
+}
 ```
 
 After creation, note the new CMR ticket key (e.g., `CMR-1305`).
