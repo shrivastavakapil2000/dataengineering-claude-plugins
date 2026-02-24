@@ -11,6 +11,12 @@
       "source": "./plugins/skills/deploy-cmr",
       "description": "Create a CMR ticket linked to a work item and notify data-engineering-only Slack channel for prod deployment",
       "version": "1.0.0"
+    },
+    {
+      "name": "sprint-taskgen",
+      "source": "./plugins/skills/sprint-taskgen",
+      "description": "Generate milestone-prefixed sub-tasks for every story in a Jira sprint",
+      "version": "1.0.0"
     }
   ]
 }

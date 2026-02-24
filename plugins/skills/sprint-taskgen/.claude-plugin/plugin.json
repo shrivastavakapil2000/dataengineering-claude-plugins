@@ -1,0 +1,8 @@
+{
+  "name": "sprint-taskgen",
+  "description": "Generate sub-tasks for every story in a Jira sprint with Data Engineering milestone prefixes",
+  "version": "1.0.0",
+  "author": {
+    "name": "Data Engineering Team"
+  }
+}

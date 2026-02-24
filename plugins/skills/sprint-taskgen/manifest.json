@@ -1,0 +1,52 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "sprint-taskgen",
+  "displayName": "Sprint Task Generator",
+  "version": "1.0.0",
+  "category": "skills",
+  "description": "Generate milestone-prefixed sub-tasks for every story in a Jira sprint",
+  "author": "data-engineering-team",
+  "tags": ["sprint", "jira", "tasks", "planning", "data-engineering", "agile"],
+  "keywords": ["sprint", "taskgen", "sub-task", "story", "breakdown", "milestone", "planning"],
+  "dependencies": {
+    "tools": ["gh"],
+    "mcpServers": ["atlassian", "slack", "aws-ccapi"]
+  },
+  "prerequisites": {
+    "plugins": [
+      {
+        "name": "atlassian",
+        "description": "Atlassian plugin (atlassian@claude-plugins-official) — must be connected to Resonate Jira and Confluence",
+        "installHint": "/plugin install atlassian@claude-plugins-official"
+      },
+      {
+        "name": "slack",
+        "description": "Slack plugin — must be connected to Resonate Slack workspace",
+        "installHint": "Connect Slack via Claude Code settings"
+      },
+      {
+        "name": "aws-ccapi",
+        "description": "AWS Cloud Control API MCP server — for investigating AWS resources referenced in stories",
+        "installHint": "Configure aws-ccapi MCP server with valid AWS credentials"
+      }
+    ],
+    "permissions": [
+      "Write access to the target Jira project (create sub-tasks)",
+      "Read access to sprint boards, stories, and Confluence spaces",
+      "Read access to Slack channels for searching discussions",
+      "Read access to GitHub repos via gh CLI (must be authenticated)",
+      "Read access to AWS resources (for infrastructure context)"
+    ]
+  },
+  "permissions": {
+    "bash": [],
+    "fileAccess": [],
+    "network": true
+  },
+  "configuration": {
+    "arguments": {
+      "type": "string",
+      "description": "Sprint name (e.g., 'DE Sprint 42' or 'CDP Sprint 2026-03')"
+    }
+  }
+}

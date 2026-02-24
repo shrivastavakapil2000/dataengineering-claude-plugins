@@ -10,6 +10,14 @@
       "description": "Create a CMR ticket linked to a work item and notify data-engineering-only Slack channel for prod deployment",
       "author": "data-engineering-team",
       "tags": ["deployment", "cmr", "change-management", "jira", "slack", "production"]
+    },
+    {
+      "name": "sprint-taskgen",
+      "category": "skills",
+      "version": "1.0.0",
+      "description": "Generate milestone-prefixed sub-tasks for every story in a Jira sprint",
+      "author": "data-engineering-team",
+      "tags": ["sprint", "jira", "tasks", "planning", "data-engineering", "agile"]
     }
   ]
 }
