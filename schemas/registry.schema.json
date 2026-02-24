@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shrivastavakapil2000/dataengineering-claude-plugins/schemas/registry.schema.json",
+  "title": "Plugin Registry",
+  "description": "Schema for the plugin registry file",
+  "type": "object",
+  "required": ["version", "plugins"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date"
+    },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/pluginEntry"
+      }
+    }
+  },
+  "$defs": {
+    "pluginEntry": {
+      "type": "object",
+      "required": ["name", "category", "version", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Plugin identifier (lowercase, hyphens only)"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["skills", "agents", "mcp-servers", "hooks"]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "author": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "minClaudeVersion": {
+          "type": "string",
+          "description": "Minimum Claude Code CLI version required"
+        }
+      }
+    }
+  }
+}

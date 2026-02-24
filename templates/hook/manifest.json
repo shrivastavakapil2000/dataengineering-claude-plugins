@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/manifest.schema.json",
+  "name": "example-hook",
+  "displayName": "Example Hook",
+  "version": "1.0.0",
+  "category": "hooks",
+  "description": "Hook that runs on [event] (max 200 chars)",
+  "author": "your-name",
+  "tags": ["hook", "automation", "data-engineering"],
+  "keywords": ["example", "template", "hook"],
+  "configuration": {
+    "event": "PostToolUse",
+    "matcher": {
+      "tool": "Bash"
+    }
+  },
+  "permissions": {
+    "bash": [],
+    "fileAccess": []
+  }
+}

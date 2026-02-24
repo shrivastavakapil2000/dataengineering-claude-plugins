@@ -1,0 +1,20 @@
+{
+  "$schema": "../../schemas/manifest.schema.json",
+  "name": "example-skill",
+  "displayName": "Example Skill",
+  "version": "1.0.0",
+  "category": "skills",
+  "description": "Brief description of what this skill does (max 200 chars)",
+  "author": "your-name",
+  "tags": ["data-engineering"],
+  "keywords": ["example", "template"],
+  "dependencies": {
+    "tools": [],
+    "mcpServers": []
+  },
+  "permissions": {
+    "bash": [],
+    "fileAccess": [],
+    "network": false
+  }
+}

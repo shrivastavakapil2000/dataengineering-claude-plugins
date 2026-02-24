@@ -1,0 +1,22 @@
+{
+  "name": "dataengineering-claude-plugins",
+  "version": "1.0.0",
+  "description": "Marketplace for Data Engineering Claude Code plugins and extensions",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "npm run validate:schemas && npm run validate:manifests",
+    "validate:schemas": "ajv validate --spec=draft2020 -c ajv-formats -s schemas/registry.schema.json -d plugins/registry.json",
+    "validate:manifests": "node scripts/validate-manifests.js",
+    "lint": "eslint .",
+    "test": "echo 'No tests configured'"
+  },
+  "devDependencies": {
+    "ajv-cli": "^5.0.0",
+    "ajv-formats": "^3.0.0",
+    "eslint": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

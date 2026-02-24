@@ -1,0 +1,33 @@
+{
+  "$schema": "../../schemas/manifest.schema.json",
+  "name": "example-mcp-server",
+  "displayName": "Example MCP Server",
+  "version": "1.0.0",
+  "category": "mcp-servers",
+  "description": "MCP server for integrating with [service] (max 200 chars)",
+  "author": "your-name",
+  "tags": ["mcp", "integration", "data-engineering"],
+  "keywords": ["example", "template", "mcp"],
+  "dependencies": {
+    "tools": ["node"]
+  },
+  "permissions": {
+    "network": true
+  },
+  "configuration": {
+    "env": {
+      "EXAMPLE_API_KEY": {
+        "description": "API key for the service",
+        "required": true
+      },
+      "EXAMPLE_BASE_URL": {
+        "description": "Base URL for API calls",
+        "required": false,
+        "default": "https://api.example.com"
+      }
+    }
+  },
+  "hooks": {
+    "postInstall": "npm install"
+  }
+}

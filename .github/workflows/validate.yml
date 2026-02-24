@@ -1,0 +1,89 @@
+name: Validate Plugins
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/**'
+      - 'schemas/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'plugins/**'
+      - 'schemas/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate JSON schemas
+        run: npm run validate:schemas
+
+      - name: Validate plugin manifests
+        run: npm run validate:manifests
+
+      - name: Check required files
+        run: |
+          for plugin_dir in plugins/*/*/; do
+            if [ -d "$plugin_dir" ]; then
+              echo "Checking $plugin_dir"
+
+              # Check manifest.json exists
+              if [ ! -f "${plugin_dir}manifest.json" ]; then
+                echo "ERROR: Missing manifest.json in $plugin_dir"
+                exit 1
+              fi
+
+              # Check README.md exists
+              if [ ! -f "${plugin_dir}README.md" ]; then
+                echo "ERROR: Missing README.md in $plugin_dir"
+                exit 1
+              fi
+
+              echo "OK $plugin_dir has required files"
+            fi
+          done
+
+      - name: Security scan
+        run: |
+          echo "Scanning for potential secrets..."
+          if grep -rE "(api[_-]?key|secret|password|token)\s*[:=]\s*['\"][^'\"]+['\"]" plugins/ --include="*.json" --include="*.md" --include="*.ts" --include="*.js" 2>/dev/null; then
+            echo "WARNING: Potential hardcoded secrets found"
+            exit 1
+          fi
+          echo "OK No obvious secrets detected"
+
+  lint-mcp-servers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Find and lint MCP servers
+        run: |
+          for server_dir in plugins/mcp-servers/*/; do
+            if [ -f "${server_dir}package.json" ]; then
+              echo "Linting $server_dir"
+              cd "$server_dir"
+              npm ci
+              npm run lint || true
+              npm run build
+              cd -
+            fi
+          done

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shrivastavakapil2000/dataengineering-claude-plugins/schemas/manifest.schema.json",
+  "title": "Plugin Manifest",
+  "description": "Schema for individual plugin manifest files",
+  "type": "object",
+  "required": ["name", "version", "category", "description"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Plugin identifier (lowercase, hyphens only)"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Human-readable name"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["skills", "agents", "mcp-servers", "hooks"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "longDescription": {
+      "type": "string",
+      "description": "Detailed description for documentation"
+    },
+    "author": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri"
+    },
+    "license": {
+      "type": "string",
+      "default": "UNLICENSED"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Search keywords for discovery"
+    },
+    "minClaudeVersion": {
+      "type": "string"
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "plugins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Required CLI tools (e.g., snow, spark-submit, aws)"
+        },
+        "mcpServers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "description": "Plugin-specific configuration schema"
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "bash": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Bash command patterns this plugin may execute"
+        },
+        "fileAccess": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File path patterns this plugin may access"
+        },
+        "network": {
+          "type": "boolean",
+          "description": "Whether plugin requires network access"
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Lifecycle hooks configuration",
+      "properties": {
+        "preInstall": {
+          "type": "string"
+        },
+        "postInstall": {
+          "type": "string"
+        },
+        "preUninstall": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

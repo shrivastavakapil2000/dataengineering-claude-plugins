@@ -1,0 +1,9 @@
+{
+  "name": "dataengineering-plugins",
+  "owner": {
+    "name": "Data Engineering Team",
+    "email": "dataengineering@resonate.com"
+  },
+  "description": "Resonate Data Engineering plugins for Claude Code — pipelines, Snowflake, Spark, ETL workflows",
+  "plugins": []
+}

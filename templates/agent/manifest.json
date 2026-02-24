@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/manifest.schema.json",
+  "name": "example-agent",
+  "displayName": "Example Agent",
+  "version": "1.0.0",
+  "category": "agents",
+  "description": "Specialized agent for [purpose] (max 200 chars)",
+  "author": "your-name",
+  "tags": ["data-engineering"],
+  "keywords": ["example", "template"],
+  "dependencies": {
+    "tools": [],
+    "mcpServers": []
+  },
+  "permissions": {
+    "bash": ["git *", "npm *"],
+    "fileAccess": ["**/*.scala", "**/*.py", "**/*.sql"],
+    "network": true
+  },
+  "configuration": {
+    "model": "sonnet",
+    "maxTurns": 50
+  }
+}
