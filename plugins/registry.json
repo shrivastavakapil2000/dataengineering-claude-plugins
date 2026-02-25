@@ -26,46 +26,6 @@
       "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
       "author": "data-engineering-team",
       "tags": ["standup", "scrum", "daily", "confluence", "jira", "slack", "pagerduty", "github"]
-    },
-    {
-      "name": "rtp-mcp",
-      "category": "mcp-servers",
-      "version": "1.0.0",
-      "description": "Read-only access to the RTP PostgreSQL database — audiences, deliveries, vendors, failed jobs",
-      "author": "data-engineering-team",
-      "tags": ["mcp", "rtp", "postgres", "database", "audiences", "deliveries"]
-    },
-    {
-      "name": "services-api-mcp",
-      "category": "mcp-servers",
-      "version": "1.0.0",
-      "description": "Resonate Services API — audience data, configurations, and delivery resets",
-      "author": "data-engineering-team",
-      "tags": ["mcp", "services-api", "audiences", "deliveries", "configurations", "resets"]
-    },
-    {
-      "name": "meta-mcp",
-      "category": "mcp-servers",
-      "version": "1.0.0",
-      "description": "Meta/Facebook Graph API — audience metadata, campaigns, ads, and performance insights",
-      "author": "data-engineering-team",
-      "tags": ["mcp", "meta", "facebook", "audiences", "campaigns", "ads", "insights"]
-    },
-    {
-      "name": "liveramp-mcp",
-      "category": "mcp-servers",
-      "version": "1.0.0",
-      "description": "LiveRamp Activation API — segment data and activation status",
-      "author": "data-engineering-team",
-      "tags": ["mcp", "liveramp", "activation", "segments"]
-    },
-    {
-      "name": "tiktok-mcp",
-      "category": "mcp-servers",
-      "version": "1.0.0",
-      "description": "TikTok Business API — custom audiences and shared audiences",
-      "author": "data-engineering-team",
-      "tags": ["mcp", "tiktok", "audiences", "advertising"]
     }
   ]
 }
