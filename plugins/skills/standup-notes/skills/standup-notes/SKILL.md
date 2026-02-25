@@ -51,9 +51,16 @@ If no argument is provided, generate notes for both squads.
 If the user provides an engineer's name (e.g., `/standup-notes Jonathan Hudson`):
 1. Look up which squad(s) the engineer belongs to from the Squad Configuration tables above
 2. Gather activity for **only that engineer** (Steps 2a–2f)
-3. Generate and post notes for that engineer in their squad's standup page
-4. If the engineer has stories/tickets that span across squads (e.g., an Append engineer working on an Activation ticket), include those cross-squad items in the engineer's update on their home squad page
-5. Only update the squad page(s) where the engineer is listed — do not touch other squad pages
+3. Display the generated notes for that engineer only
+4. If the engineer has stories/tickets that span across squads (e.g., an Append engineer working on an Activation ticket), include those cross-squad items in the engineer's update
+
+### Ad-Hoc Username Mode
+
+If the user provides a name that is **not** in the Squad Configuration tables (e.g., `/standup-notes Kapil Shrivastava`):
+1. Use the provided name as-is for Jira display name, Slack search name, and Confluence contributor searches
+2. Gather activity using the same steps (2a–2f) — Jira, GitHub, Slack, Confluence, PagerDuty, PTO check
+3. Display the generated notes without a squad label (since they are not in a configured squad)
+4. This allows any engineer to generate their own report on demand
 
 ## Workflow
 

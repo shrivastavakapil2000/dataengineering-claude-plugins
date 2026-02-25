@@ -22,7 +22,8 @@ Generate daily standup notes for the **Activation** and **Append** squads by gat
 /standup-notes                      # Generate for both squads
 /standup-notes activation           # Activation squad only
 /standup-notes append               # Append squad only
-/standup-notes Jonathan Hudson      # Single engineer (updates their squad page)
+/standup-notes Jonathan Hudson      # Single engineer from a configured squad
+/standup-notes Kapil Shrivastava    # Any engineer (ad-hoc, no squad needed)
 ```
 
 ## Squads
@@ -59,6 +60,7 @@ Pagerduty:
 - **PTO/OOO gating** — must complete PTO check before composing any notes
 - **No 1-on-1 DMs** — only channel and group DM messages are reported
 - **Single-engineer mode** — provide an engineer's name to generate only their report; cross-squad tickets are included
+- **Ad-hoc username** — any engineer can generate their own report, even if not in a configured squad
 - **Display only** — notes are shown for review, not written to Confluence automatically
 
 ## Prerequisites
