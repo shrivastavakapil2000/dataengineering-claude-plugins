@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "liveramp-mcp",
+  "displayName": "LiveRamp Activation MCP",
+  "version": "1.0.0",
+  "category": "mcp-servers",
+  "description": "LiveRamp Activation API — segment data and activation status",
+  "author": "data-engineering-team",
+  "repository": "https://github.com/resonate/audience-delivery-mcp",
+  "tags": ["mcp", "liveramp", "activation", "segments"],
+  "keywords": ["liveramp", "activation", "segment", "onboarding"],
+  "dependencies": {
+    "tools": ["python"]
+  },
+  "prerequisites": {
+    "plugins": [],
+    "permissions": [
+      "LiveRamp account ID and secret key"
+    ]
+  },
+  "permissions": {
+    "network": true
+  },
+  "configuration": {
+    "env": {
+      "LIVERAMP_ACCOUNT_ID": {
+        "description": "LiveRamp service account ID",
+        "required": true
+      },
+      "LIVERAMP_SECRET_KEY": {
+        "description": "LiveRamp service account secret key",
+        "required": true
+      }
+    }
+  }
+}

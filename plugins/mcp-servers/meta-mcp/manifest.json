@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "meta-mcp",
+  "displayName": "Meta/Facebook MCP",
+  "version": "1.0.0",
+  "category": "mcp-servers",
+  "description": "Meta/Facebook Graph API — audience metadata, campaigns, ads, and performance insights",
+  "author": "data-engineering-team",
+  "repository": "https://github.com/resonate/audience-delivery-mcp",
+  "tags": ["mcp", "meta", "facebook", "audiences", "campaigns", "ads", "insights"],
+  "keywords": ["meta", "facebook", "graph-api", "audience", "campaign", "insights"],
+  "dependencies": {
+    "tools": ["python"]
+  },
+  "prerequisites": {
+    "plugins": [],
+    "permissions": [
+      "Facebook access token from Meta Business Manager"
+    ]
+  },
+  "permissions": {
+    "network": true
+  },
+  "configuration": {
+    "env": {
+      "FB_ACCESS_TOKEN": {
+        "description": "Facebook Graph API access token from Meta Business Manager",
+        "required": true
+      }
+    }
+  }
+}

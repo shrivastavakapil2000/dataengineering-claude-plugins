@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "services-api-mcp",
+  "displayName": "Services API MCP",
+  "version": "1.0.0",
+  "category": "mcp-servers",
+  "description": "Resonate Services API — audience data, configurations, and delivery resets",
+  "author": "data-engineering-team",
+  "repository": "https://github.com/resonate/audience-delivery-mcp",
+  "tags": ["mcp", "services-api", "audiences", "deliveries", "configurations", "resets"],
+  "keywords": ["services-api", "audience", "delivery", "reset", "configuration"],
+  "dependencies": {
+    "tools": ["python"]
+  },
+  "prerequisites": {
+    "plugins": [],
+    "permissions": [
+      "VPN access to Resonate internal network",
+      "Resonate SSO credentials (email and password)"
+    ]
+  },
+  "permissions": {
+    "network": true
+  },
+  "configuration": {
+    "env": {
+      "OAUTH_USERNAME": {
+        "description": "Your Resonate email address",
+        "required": true
+      },
+      "OAUTH_PASSWORD": {
+        "description": "Your Resonate SSO password",
+        "required": true
+      }
+    }
+  }
+}

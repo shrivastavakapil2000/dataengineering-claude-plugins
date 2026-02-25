@@ -23,6 +23,36 @@
       "source": "./plugins/skills/standup-notes",
       "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
       "version": "1.0.0"
+    },
+    {
+      "name": "rtp-mcp",
+      "source": "./plugins/mcp-servers/rtp-mcp",
+      "description": "Read-only access to the RTP PostgreSQL database — audiences, deliveries, vendors, failed jobs",
+      "version": "1.0.0"
+    },
+    {
+      "name": "services-api-mcp",
+      "source": "./plugins/mcp-servers/services-api-mcp",
+      "description": "Resonate Services API — audience data, configurations, and delivery resets",
+      "version": "1.0.0"
+    },
+    {
+      "name": "meta-mcp",
+      "source": "./plugins/mcp-servers/meta-mcp",
+      "description": "Meta/Facebook Graph API — audience metadata, campaigns, ads, and performance insights",
+      "version": "1.0.0"
+    },
+    {
+      "name": "liveramp-mcp",
+      "source": "./plugins/mcp-servers/liveramp-mcp",
+      "description": "LiveRamp Activation API — segment data and activation status",
+      "version": "1.0.0"
+    },
+    {
+      "name": "tiktok-mcp",
+      "source": "./plugins/mcp-servers/tiktok-mcp",
+      "description": "TikTok Business API — custom audiences and shared audiences",
+      "version": "1.0.0"
     }
   ]
 }

@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "tiktok-mcp",
+  "displayName": "TikTok Business MCP",
+  "version": "1.0.0",
+  "category": "mcp-servers",
+  "description": "TikTok Business API — custom audiences and shared audiences",
+  "author": "data-engineering-team",
+  "repository": "https://github.com/resonate/audience-delivery-mcp",
+  "tags": ["mcp", "tiktok", "audiences", "advertising"],
+  "keywords": ["tiktok", "business-api", "audience", "advertising"],
+  "dependencies": {
+    "tools": ["python"]
+  },
+  "prerequisites": {
+    "plugins": [
+      {
+        "name": "rtp-mcp",
+        "description": "RTP Database MCP — needed to retrieve TikTok access tokens from the database",
+        "installHint": "See plugins/mcp-servers/rtp-mcp"
+      }
+    ],
+    "permissions": [
+      "TikTok access token and advertiser ID (retrieved from RTP database per-request)"
+    ]
+  },
+  "permissions": {
+    "network": true
+  },
+  "configuration": {
+    "env": {}
+  }
+}
