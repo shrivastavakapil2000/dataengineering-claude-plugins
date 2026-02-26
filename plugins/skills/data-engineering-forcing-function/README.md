@@ -13,9 +13,9 @@ Check data engineering team compliance rules against connected systems (GitHub, 
 
 ### Current Rules
 
-| Rule | Checks                                                                                                                                                                   |
-|------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **PR Shared in Slack** | Every PR that was created by a DE team member in the `resonate` GitHub org, which was merged or reviewes are in-progress, needs to be posted in `#data-engineering-only` |
+| Rule | Checks                                                                                                                                                                                                                                                                                                              |
+|------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **PR Shared in Slack** | Every PR that was created by a DE team member in the `resonate` GitHub org, which was merged or reviewes are in-progress, needs to be posted in `#data-engineering-only`. You should check threads in slack also, sometimes the CR or PR or change request or pull request words are used and there are links to it |
 
 ## Installation
 

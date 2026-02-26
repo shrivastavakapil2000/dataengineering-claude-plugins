@@ -9,7 +9,14 @@
       "version": "1.0.0",
       "description": "Create a CMR ticket linked to a work item and notify data-engineering-only Slack channel for prod deployment",
       "author": "data-engineering-team",
-      "tags": ["deployment", "cmr", "change-management", "jira", "slack", "production"]
+      "tags": [
+        "deployment",
+        "cmr",
+        "change-management",
+        "jira",
+        "slack",
+        "production"
+      ]
     },
     {
       "name": "sprint-taskgen",
@@ -17,7 +24,14 @@
       "version": "1.0.0",
       "description": "Generate milestone-prefixed sub-tasks for every story in a Jira sprint",
       "author": "data-engineering-team",
-      "tags": ["sprint", "jira", "tasks", "planning", "data-engineering", "agile"]
+      "tags": [
+        "sprint",
+        "jira",
+        "tasks",
+        "planning",
+        "data-engineering",
+        "agile"
+      ]
     },
     {
       "name": "standup-notes",
@@ -25,15 +39,32 @@
       "version": "1.0.0",
       "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
       "author": "data-engineering-team",
-      "tags": ["standup", "scrum", "daily", "confluence", "jira", "slack", "pagerduty", "github"]
+      "tags": [
+        "standup",
+        "scrum",
+        "daily",
+        "confluence",
+        "jira",
+        "slack",
+        "pagerduty",
+        "github"
+      ]
     },
     {
       "name": "data-engineering-forcing-function",
       "category": "skills",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "Check DE team compliance rules against connected systems and generate an HTML report",
       "author": "data-engineering-team",
-      "tags": ["compliance", "rules", "pr-hygiene", "slack", "github", "audit", "html-report"]
+      "tags": [
+        "compliance",
+        "rules",
+        "pr-hygiene",
+        "slack",
+        "github",
+        "audit",
+        "html-report"
+      ]
     }
   ]
 }

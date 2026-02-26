@@ -2,15 +2,36 @@
   "$schema": "../../../schemas/manifest.schema.json",
   "name": "data-engineering-forcing-function",
   "displayName": "DE Forcing Function",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "category": "skills",
   "description": "Check DE team compliance rules against connected systems and generate an HTML report",
   "author": "data-engineering-team",
-  "tags": ["compliance", "rules", "pr-hygiene", "slack", "github", "audit", "html-report"],
-  "keywords": ["rules", "check", "compliance", "pr", "slack", "audit", "report"],
+  "tags": [
+    "compliance",
+    "rules",
+    "pr-hygiene",
+    "slack",
+    "github",
+    "audit",
+    "html-report"
+  ],
+  "keywords": [
+    "rules",
+    "check",
+    "compliance",
+    "pr",
+    "slack",
+    "audit",
+    "report"
+  ],
   "dependencies": {
-    "tools": ["gh"],
-    "mcpServers": ["atlassian", "slack"]
+    "tools": [
+      "gh"
+    ],
+    "mcpServers": [
+      "atlassian",
+      "slack"
+    ]
   },
   "prerequisites": {
     "plugins": [
@@ -31,8 +52,15 @@
     ]
   },
   "permissions": {
-    "bash": ["gh search prs *", "gh pr list *", "date *"],
-    "fileAccess": ["plugins/skills/data-engineering-forcing-function/rules.yaml", "rules-report-*.html"],
+    "bash": [
+      "gh search prs *",
+      "gh pr list *",
+      "date *"
+    ],
+    "fileAccess": [
+      "plugins/skills/data-engineering-forcing-function/rules.yaml",
+      "rules-report-*.html"
+    ],
     "network": true
   },
   "configuration": {

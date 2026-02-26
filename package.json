@@ -9,7 +9,8 @@
     "validate:schemas": "ajv validate --spec=draft2020 -c ajv-formats -s schemas/registry.schema.json -d plugins/registry.json",
     "validate:manifests": "node scripts/validate-manifests.js",
     "lint": "eslint .",
-    "test": "echo 'No tests configured'"
+    "test": "echo 'No tests configured'",
+    "setup-hooks": "cp scripts/pre-commit-version-bump.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo 'pre-commit hook installed'"
   },
   "devDependencies": {
     "ajv-cli": "^5.0.0",
