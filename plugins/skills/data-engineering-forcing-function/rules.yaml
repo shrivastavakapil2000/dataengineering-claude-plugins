@@ -8,14 +8,15 @@ team:
   github_org: "resonate"
   members:
     - name: "Kapil Shrivastava"
-      github: "kshrivastava-res"
+      github: "shrivastavakapil2000"
     - name: "Sayali Patwardhan"
-      github: "sayali-patwardhan"
+      github: "SayaliPat"
     - name: "Joe Xu"
-      github: "joe-xu-res"
-    # Add more team members:
-    # - name: "First Last"
-    #   github: "github-username"
+      github: "JoeVsVolcano"
+    - name: "Mike Brant"
+      github: "mike-brant"
+    - name: "Nathan"
+      github: "nathan-resonate"
 
 jira:
   cloud_id: "cb98e3ba-b082-4b0e-a241-0c4ccd00dce8"
