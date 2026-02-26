@@ -1,0 +1,8 @@
+{
+  "name": "data-engineering-forcing-function",
+  "description": "Check DE team compliance rules against connected systems and generate an HTML report",
+  "version": "1.0.0",
+  "author": {
+    "name": "Data Engineering Team"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "../../../schemas/manifest.schema.json",
+  "name": "data-engineering-forcing-function",
+  "displayName": "DE Forcing Function",
+  "version": "1.0.0",
+  "category": "skills",
+  "description": "Check DE team compliance rules against connected systems and generate an HTML report",
+  "author": "data-engineering-team",
+  "tags": ["compliance", "rules", "pr-hygiene", "slack", "github", "audit", "html-report"],
+  "keywords": ["rules", "check", "compliance", "pr", "slack", "audit", "report"],
+  "dependencies": {
+    "tools": ["gh"],
+    "mcpServers": ["atlassian", "slack"]
+  },
+  "prerequisites": {
+    "plugins": [
+      {
+        "name": "atlassian",
+        "description": "Atlassian plugin — must be connected to Resonate Jira (for sprint date lookups)",
+        "installHint": "/plugin install atlassian@claude-plugins-official"
+      },
+      {
+        "name": "slack",
+        "description": "Slack plugin — must be connected to Resonate Slack workspace",
+        "installHint": "Connect Slack via Claude Code settings"
+      }
+    ],
+    "permissions": [
+      "gh CLI authenticated to resonate GitHub org",
+      "Read access to #data-engineering-only Slack channel"
+    ]
+  },
+  "permissions": {
+    "bash": ["gh search prs *", "gh pr list *", "date *"],
+    "fileAccess": ["plugins/skills/data-engineering-forcing-function/rules.yaml", "rules-report-*.html"],
+    "network": true
+  },
+  "configuration": {
+    "arguments": {
+      "type": "string",
+      "description": "Time range — e.g. 'this sprint', 'last sprint', 'last 2 weeks', '2026-02-01..2026-02-26'"
+    }
+  }
+}

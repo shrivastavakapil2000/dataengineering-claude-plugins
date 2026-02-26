@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/registry.schema.json",
   "version": "1.0.0",
-  "lastUpdated": "2026-02-24",
+  "lastUpdated": "2026-02-26",
   "plugins": [
     {
       "name": "deploy-cmr",
@@ -26,6 +26,14 @@
       "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
       "author": "data-engineering-team",
       "tags": ["standup", "scrum", "daily", "confluence", "jira", "slack", "pagerduty", "github"]
+    },
+    {
+      "name": "data-engineering-forcing-function",
+      "category": "skills",
+      "version": "1.0.0",
+      "description": "Check DE team compliance rules against connected systems and generate an HTML report",
+      "author": "data-engineering-team",
+      "tags": ["compliance", "rules", "pr-hygiene", "slack", "github", "audit", "html-report"]
     }
   ]
 }

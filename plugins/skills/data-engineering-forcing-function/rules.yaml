@@ -1,0 +1,48 @@
+# Data Engineering Rules Configuration
+# =====================================
+# Edit this file to add/remove rules and team members.
+# Run /data-engineering-forcing-function to validate compliance.
+
+team:
+  name: "Data Engineering"
+  github_org: "resonate"
+  members:
+    - name: "Kapil Shrivastava"
+      github: "kshrivastava-res"
+    - name: "Sayali Patwardhan"
+      github: "sayali-patwardhan"
+    - name: "Joe Xu"
+      github: "joe-xu-res"
+    # Add more team members:
+    # - name: "First Last"
+    #   github: "github-username"
+
+jira:
+  cloud_id: "cb98e3ba-b082-4b0e-a241-0c4ccd00dce8"
+  project_key: "CDP"
+
+slack:
+  channel: "data-engineering-only"
+
+# ------------------------------------------
+# Rules
+# ------------------------------------------
+# Each rule defines:
+#   id          - unique identifier
+#   name        - human-readable name
+#   description - what the rule checks
+#   severity    - error | warning | info
+#   category    - grouping label
+#   enabled     - true/false toggle
+# ------------------------------------------
+
+rules:
+  - id: pr-shared-in-slack
+    name: "PR Shared in Slack"
+    description: >
+      Every PR created by a Data Engineer in the resonate GitHub org that is
+      merged or has reviews in-progress must be shared (URL posted) in the
+      #data-engineering-only Slack channel.
+    severity: warning
+    category: pr-hygiene
+    enabled: true

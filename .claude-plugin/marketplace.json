@@ -23,6 +23,12 @@
       "source": "./plugins/skills/standup-notes",
       "description": "Generate daily standup notes for Activation and DaaS squads from GitHub, Slack, Jira, Confluence, and PagerDuty",
       "version": "1.0.0"
+    },
+    {
+      "name": "data-engineering-forcing-function",
+      "source": "./plugins/skills/data-engineering-forcing-function",
+      "description": "Check DE team compliance rules against connected systems and generate an HTML report",
+      "version": "1.0.0"
     }
   ]
 }
