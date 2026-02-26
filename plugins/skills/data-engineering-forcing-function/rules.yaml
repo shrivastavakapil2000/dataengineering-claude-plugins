@@ -17,6 +17,8 @@ team:
       github: "mike-brant"
     - name: "Nathan"
       github: "nathan-resonate"
+    - name: "Pallavi Jagarlamudi"
+      github: "jagarlamudipallavi"
 
 jira:
   cloud_id: "cb98e3ba-b082-4b0e-a241-0c4ccd00dce8"
